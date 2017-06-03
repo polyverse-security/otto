@@ -310,10 +310,10 @@ func builtinString_split(call FunctionCall) Value {
 	if separatorValue.isRegExp() {
 		targetLength := len(target)
 		search := separatorValue._object().regExpValue().regularExpression
-		valueArray := []Value{}
 		result := search.FindAllStringSubmatchIndex(target, -1)
 		lastIndex := 0
 		found := 0
+		valueArray := make([]Value, 0, len(result))
 
 		for _, match := range result {
 			if match[0] == match[1] {

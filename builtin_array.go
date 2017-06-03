@@ -63,8 +63,8 @@ func builtinArray_toLocaleString(call FunctionCall) Value {
 
 func builtinArray_concat(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	valueArray := []Value{}
 	source := append([]Value{toValue_object(thisObject)}, call.ArgumentList...)
+	valueArray := make([]Value, 0, len(source))
 	for _, item := range source {
 		switch item.kind {
 		case valueObject:
@@ -602,7 +602,7 @@ func builtinArray_filter(call FunctionCall) Value {
 	if iterator := call.Argument(0); iterator.isCallable() {
 		length := int64(toUint32(thisObject.get("length")))
 		callThis := call.Argument(1)
-		values := make([]Value, 0)
+		values := make([]Value, 0, length)
 		for index := int64(0); index < length; index++ {
 			if key := arrayIndexToString(index); thisObject.hasProperty(key) {
 				value := thisObject.get(key)

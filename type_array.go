@@ -91,7 +91,7 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		if index >= int64(length) && !lengthProperty.writable() {
 			goto Reject
 		}
-		if !objectDefineOwnProperty(self, strconv.FormatInt(index, 10), descriptor, false) {
+		if !objectDefineOwnProperty(self, name, descriptor, false) {
 			goto Reject
 		}
 		if index >= int64(length) {

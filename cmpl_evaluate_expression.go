@@ -103,7 +103,7 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 
 func (self *_runtime) cmpl_evaluate_nodeArrayLiteral(node *_nodeArrayLiteral) Value {
 
-	valueArray := []Value{}
+	valueArray := make([]Value, 0, len(node.value))
 
 	for _, node := range node.value {
 		if node == nil {
@@ -189,6 +189,7 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 	if withArgumentList != nil {
 		argumentList = self.toValueArray(withArgumentList...)
 	} else {
+		argumentList = make([]Value, 0, len(node.argumentList))
 		for _, argumentNode := range node.argumentList {
 			argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 		}
@@ -268,7 +269,7 @@ func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) 
 	rt := self
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
 
-	argumentList := []Value{}
+	argumentList := make([]Value, 0, len(node.argumentList))
 	for _, argumentNode := range node.argumentList {
 		argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 	}
