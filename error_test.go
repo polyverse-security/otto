@@ -26,7 +26,7 @@ func TestPanicValue(t *testing.T) {
 	tt(t, func() {
 		test, vm := test()
 
-		vm.Set("abc", func(call FunctionCall) Value {
+		vm.Set("abc", func(call FunctionCall) *Value {
 			value, err := call.Otto.Run(`({ def: 3.14159 })`)
 			is(err, nil)
 			panic(value)
@@ -253,7 +253,7 @@ func TestMakeCustomErrorReturn(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("A", func(c FunctionCall) Value {
+		vm.Set("A", func(c FunctionCall) *Value {
 			return vm.MakeCustomError("CarrotError", "carrots is life, carrots is love")
 		})
 
@@ -304,7 +304,7 @@ func TestMakeCustomError(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("A", func(c FunctionCall) Value {
+		vm.Set("A", func(c FunctionCall) *Value {
 			panic(vm.MakeCustomError("CarrotError", "carrots is life, carrots is love"))
 
 			return UndefinedValue()
@@ -352,7 +352,7 @@ func TestMakeTypeError(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("A", func(c FunctionCall) Value {
+		vm.Set("A", func(c FunctionCall) *Value {
 			panic(vm.MakeTypeError("these aren't my glasses"))
 
 			return UndefinedValue()
@@ -386,7 +386,7 @@ func TestMakeRangeError(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("A", func(c FunctionCall) Value {
+		vm.Set("A", func(c FunctionCall) *Value {
 			panic(vm.MakeRangeError("too many"))
 
 			return UndefinedValue()
@@ -420,7 +420,7 @@ func TestMakeSyntaxError(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("A", func(c FunctionCall) Value {
+		vm.Set("A", func(c FunctionCall) *Value {
 			panic(vm.MakeSyntaxError("i think you meant \"you're\""))
 
 			return UndefinedValue()

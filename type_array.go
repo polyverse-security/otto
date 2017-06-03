@@ -31,7 +31,7 @@ func objectLength(object *_object) uint32 {
 	return 0
 }
 
-func arrayUint32(rt *_runtime, value Value) uint32 {
+func arrayUint32(rt *_runtime, value *Value) uint32 {
 	nm := value.number()
 	if nm.kind != numberInteger || !isUint32(nm.int64) {
 		// FIXME
@@ -51,7 +51,7 @@ func arrayDefineOwnProperty(self *_object, name string, descriptor _property, th
 		if descriptor.value == nil {
 			return objectDefineOwnProperty(self, name, descriptor, throw)
 		}
-		newLengthValue, isValue := descriptor.value.(Value)
+		newLengthValue, isValue := descriptor.value.(*Value)
 		if !isValue {
 			panic(self.runtime.panicTypeError())
 		}

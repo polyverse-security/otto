@@ -1,6 +1,6 @@
 package otto
 
-func (rt *_runtime) newErrorObject(name string, message Value, stackFramesToPop int) *_object {
+func (rt *_runtime) newErrorObject(name string, message *Value, stackFramesToPop int) *_object {
 	self := rt.newClassObject("Error")
 	if message.IsDefined() {
 		msg := message.string()
@@ -12,7 +12,7 @@ func (rt *_runtime) newErrorObject(name string, message Value, stackFramesToPop 
 
 	self.defineOwnProperty("stack", _property{
 		value: _propertyGetSet{
-			rt.newNativeFunction("get", "internal", 0, func(FunctionCall) Value {
+			rt.newNativeFunction("get", "internal", 0, func(FunctionCall) *Value {
 				return toValue_string(self.value.(_error).formatWithStack())
 			}),
 			&_nilGetSetObject,

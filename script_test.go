@@ -80,7 +80,7 @@ func TestScript(t *testing.T) {
 func TestFunctionCall_CallerLocation(t *testing.T) {
 	tt(t, func() {
 		vm := New()
-		vm.Set("loc", func(call FunctionCall) Value {
+		vm.Set("loc", func(call FunctionCall) *Value {
 			return toValue(call.CallerLocation())
 		})
 		script, err := vm.Compile("somefile.js", `var where = loc();`)

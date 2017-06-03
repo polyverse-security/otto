@@ -115,7 +115,7 @@ func TestSourceMapContextPosition(t *testing.T) {
 			panic(err)
 		}
 
-		vm.Set("functionExternal", func(c FunctionCall) Value {
+		vm.Set("functionExternal", func(c FunctionCall) *Value {
 			ctx := c.Otto.Context()
 
 			is(ctx.Filename, "hello.js")
@@ -144,7 +144,7 @@ func TestSourceMapContextStacktrace(t *testing.T) {
 			panic(err)
 		}
 
-		vm.Set("functionExternal", func(c FunctionCall) Value {
+		vm.Set("functionExternal", func(c FunctionCall) *Value {
 			ctx := c.Otto.Context()
 
 			is(ctx.Stacktrace, []string{

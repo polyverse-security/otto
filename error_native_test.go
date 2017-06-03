@@ -12,7 +12,7 @@ func TestErrorContextNative(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("N", func(c FunctionCall) Value {
+		vm.Set("N", func(c FunctionCall) *Value {
 			v, err := c.Argument(0).Call(NullValue())
 			if err != nil {
 				panic(err)

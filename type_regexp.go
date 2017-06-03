@@ -120,13 +120,13 @@ func execRegExp(this *_object, target string) (match bool, result []int) {
 
 func execResultToArray(runtime *_runtime, target string, result []int) *_object {
 	captureCount := len(result) / 2
-	valueArray := make([]Value, captureCount)
+	valueArray := make([]*Value, captureCount)
 	for index := 0; index < captureCount; index++ {
 		offset := 2 * index
 		if result[offset] != -1 {
 			valueArray[index] = toValue_string(target[result[offset]:result[offset+1]])
 		} else {
-			valueArray[index] = Value{}
+			valueArray[index] = &Value{}
 		}
 	}
 	matchIndex := result[0]

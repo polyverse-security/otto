@@ -15,7 +15,7 @@ func TestOperator(t *testing.T) {
 		test("xyzzy", 1)
 
 		if true {
-			vm.Set("twoPlusTwo", func(FunctionCall) Value {
+			vm.Set("twoPlusTwo", func(FunctionCall) *Value {
 				return toValue(5)
 			})
 			test("twoPlusTwo( 1 )", 5)

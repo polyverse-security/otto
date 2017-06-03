@@ -1047,7 +1047,7 @@ func TestOttoCall_new(t *testing.T) {
 	tt(t, func() {
 		test, vm := test()
 
-		vm.Set("abc", func(call FunctionCall) Value {
+		vm.Set("abc", func(call FunctionCall) *Value {
 			value, err := call.Otto.Call(`new Object`, nil, "Nothing happens.")
 			is(err, nil)
 			return value
@@ -1082,7 +1082,7 @@ func TestOttoCall_throw(t *testing.T) {
 	tt(t, func() {
 		test, vm := test()
 
-		vm.Set("abc", func(call FunctionCall) Value {
+		vm.Set("abc", func(call FunctionCall) *Value {
 			if false {
 				call.Otto.Call(`throw eval`, nil, "({ def: 3.14159 })")
 			}
@@ -1104,7 +1104,7 @@ func TestOttoCall_throw(t *testing.T) {
             [ error instanceof Error, error.message, error.def ];
         `, "true,abcdef,")
 
-		vm.Set("def", func(call FunctionCall) Value {
+		vm.Set("def", func(call FunctionCall) *Value {
 			call.Otto.Call(`throw new Object`, nil, 3.14159)
 			return UndefinedValue()
 		})
@@ -1412,8 +1412,8 @@ func TestOttoRun(t *testing.T) {
 // This generates functions to be used by the test below. The arguments are
 // `src`, which is something that otto can execute, and `expected`, which is
 // what the result of executing `src` should be.
-func makeTestOttoEvalFunction(src, expected interface{}) func(c FunctionCall) Value {
-	return func(c FunctionCall) Value {
+func makeTestOttoEvalFunction(src, expected interface{}) func(c FunctionCall) *Value {
+	return func(c FunctionCall) *Value {
 		v, err := c.Otto.Eval(src)
 		is(err, nil)
 		if err != nil {
@@ -1530,7 +1530,7 @@ func TestOttoContext(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("get_context", func(c FunctionCall) Value {
+		vm.Set("get_context", func(c FunctionCall) *Value {
 			ctx := c.Otto.Context()
 			is(ctx.Callee, "f1")
 			is(ctx.Filename, "<anonymous>")
@@ -1593,7 +1593,7 @@ func TestOttoContext(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("get_context", func(c FunctionCall) Value {
+		vm.Set("get_context", func(c FunctionCall) *Value {
 			ctx := c.Otto.Context()
 			is(ctx.Callee, "")
 			is(ctx.Filename, "<anonymous>")
@@ -1619,7 +1619,7 @@ func TestOttoContext(t *testing.T) {
 	tt(t, func() {
 		vm := New()
 
-		vm.Set("check_context", func(c FunctionCall) Value {
+		vm.Set("check_context", func(c FunctionCall) *Value {
 			n, err := c.Argument(0).ToInteger()
 			is(err, nil)
 

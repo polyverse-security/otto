@@ -80,7 +80,7 @@ func (self *_tester) Get(name string) (Value, error) {
 	return self.vm.Get(name)
 }
 
-func (self *_tester) Set(name string, value interface{}) Value {
+func (self *_tester) Set(name string, value interface{}) *Value {
 	err := self.vm.Set(name, value)
 	is(err, nil)
 	if err != nil {
@@ -93,7 +93,7 @@ func (self *_tester) Run(src interface{}) (Value, error) {
 	return self.vm.Run(src)
 }
 
-func (self *_tester) test(name string, expect ...interface{}) Value {
+func (self *_tester) test(name string, expect ...interface{}) *Value {
 	vm := self.vm
 	raise := false
 	defer func() {

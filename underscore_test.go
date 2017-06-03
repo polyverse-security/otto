@@ -35,7 +35,7 @@ func (self *_tester) underscore() {
 		panic(err)
 	}
 
-	vm.Set("assert", func(call FunctionCall) Value {
+	vm.Set("assert", func(call FunctionCall) *Value {
 		if !call.Argument(0).bool() {
 			message := "Assertion failed"
 			if len(call.ArgumentList) > 1 {

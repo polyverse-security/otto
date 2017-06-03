@@ -7,7 +7,7 @@ import (
 	"github.com/robertkrimen/otto/token"
 )
 
-func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) *Value {
 	// Allow interpreter interruption
 	// If the Interrupt channel is nil, then
 	// we avoid runtime.Gosched() overhead (if any)
@@ -85,7 +85,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 		if node.argument != nil {
 			return toValue(newReturnResult(self.cmpl_evaluate_nodeExpression(node.argument).resolve()))
 		}
-		return toValue(newReturnResult(Value{}))
+		return toValue(newReturnResult(&Value{}))
 
 	case *_nodeSwitchStatement:
 		return self.cmpl_evaluate_nodeSwitchStatement(node)
@@ -115,8 +115,8 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) Value {
 	panic(fmt.Errorf("Here be dragons: evaluate_nodeStatement(%T)", node))
 }
 
-func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) Value {
-	var result Value
+func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) *Value {
+	var result *Value
 	for _, node := range list {
 		value := self.cmpl_evaluate_nodeStatement(node)
 		switch value.kind {
@@ -135,7 +135,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) Val
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeDoWhileStatement(node *_nodeDoWhileStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeDoWhileStatement(node *_nodeDoWhileStatement) *Value {
 
 	labels := append(self.labels, "")
 	self.labels = nil
@@ -171,7 +171,7 @@ resultBreak:
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement) *Value {
 
 	labels := append(self.labels, "")
 	self.labels = nil
@@ -234,7 +234,7 @@ func (self *_runtime) cmpl_evaluate_nodeForInStatement(node *_nodeForInStatement
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeForStatement(node *_nodeForStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeForStatement(node *_nodeForStatement) *Value {
 
 	labels := append(self.labels, "")
 	self.labels = nil
@@ -285,7 +285,7 @@ resultBreak:
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeIfStatement(node *_nodeIfStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeIfStatement(node *_nodeIfStatement) *Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
 	testValue := test.resolve()
 	if testValue.bool() {
@@ -297,7 +297,7 @@ func (self *_runtime) cmpl_evaluate_nodeIfStatement(node *_nodeIfStatement) Valu
 	return emptyValue
 }
 
-func (self *_runtime) cmpl_evaluate_nodeSwitchStatement(node *_nodeSwitchStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeSwitchStatement(node *_nodeSwitchStatement) *Value {
 
 	labels := append(self.labels, "")
 	self.labels = nil
@@ -339,8 +339,8 @@ func (self *_runtime) cmpl_evaluate_nodeSwitchStatement(node *_nodeSwitchStateme
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeTryStatement(node *_nodeTryStatement) Value {
-	tryCatchValue, exception := self.tryCatchEvaluate(func() Value {
+func (self *_runtime) cmpl_evaluate_nodeTryStatement(node *_nodeTryStatement) *Value {
+	tryCatchValue, exception := self.tryCatchEvaluate(func() *Value {
 		return self.cmpl_evaluate_nodeStatement(node.body)
 	})
 
@@ -357,7 +357,7 @@ func (self *_runtime) cmpl_evaluate_nodeTryStatement(node *_nodeTryStatement) Va
 
 		// FIXME node.CatchParameter
 		// FIXME node.Catch
-		tryCatchValue, exception = self.tryCatchEvaluate(func() Value {
+		tryCatchValue, exception = self.tryCatchEvaluate(func() *Value {
 			return self.cmpl_evaluate_nodeStatement(node.catch.body)
 		})
 	}
@@ -376,7 +376,7 @@ func (self *_runtime) cmpl_evaluate_nodeTryStatement(node *_nodeTryStatement) Va
 	return tryCatchValue
 }
 
-func (self *_runtime) cmpl_evaluate_nodeWhileStatement(node *_nodeWhileStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeWhileStatement(node *_nodeWhileStatement) *Value {
 
 	test := node.test
 	body := node.body
@@ -411,7 +411,7 @@ resultBreakContinue:
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeWithStatement(node *_nodeWithStatement) Value {
+func (self *_runtime) cmpl_evaluate_nodeWithStatement(node *_nodeWithStatement) *Value {
 	object := self.cmpl_evaluate_nodeExpression(node.object)
 	outer := self.scope.lexical
 	lexical := self.newObjectStash(self.toObject(object.resolve()), outer)

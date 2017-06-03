@@ -10,7 +10,7 @@ import (
 type _dateObject struct {
 	time  Time.Time // Time from the "time" package, a cached version of time
 	epoch int64
-	value Value
+	value *Value
 	isNaN bool
 }
 
@@ -68,7 +68,7 @@ func (self *_dateObject) Epoch() int64 {
 	return self.epoch
 }
 
-func (self *_dateObject) Value() Value {
+func (self *_dateObject) Value() *Value {
 	return self.value
 }
 
@@ -174,7 +174,7 @@ func dateFromGoDay(day Time.Weekday) int {
 	return int(day)
 }
 
-func newDateTime(argumentList []Value, location *Time.Location) (epoch float64) {
+func newDateTime(argumentList []*Value, location *Time.Location) (epoch float64) {
 
 	pick := func(index int, default_ float64) (float64, bool) {
 		if index >= len(argumentList) {

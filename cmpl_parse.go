@@ -470,7 +470,7 @@ type (
 	}
 
 	_nodeLiteral struct {
-		value Value
+		value *Value
 	}
 
 	_nodeNewExpression struct {

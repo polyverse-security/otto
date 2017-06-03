@@ -8,7 +8,7 @@ import (
 	"github.com/robertkrimen/otto/token"
 )
 
-func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) *Value {
 	// Allow interpreter interruption
 	// If the Interrupt channel is nil, then
 	// we avoid runtime.Gosched() overhead (if any)
@@ -101,9 +101,9 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) Value {
 	panic(fmt.Errorf("Here be dragons: evaluate_nodeExpression(%T)", node))
 }
 
-func (self *_runtime) cmpl_evaluate_nodeArrayLiteral(node *_nodeArrayLiteral) Value {
+func (self *_runtime) cmpl_evaluate_nodeArrayLiteral(node *_nodeArrayLiteral) *Value {
 
-	valueArray := make([]Value, 0, len(node.value))
+	valueArray := make([]*Value, 0, len(node.value))
 
 	for _, node := range node.value {
 		if node == nil {
@@ -118,7 +118,7 @@ func (self *_runtime) cmpl_evaluate_nodeArrayLiteral(node *_nodeArrayLiteral) Va
 	return toValue_object(result)
 }
 
-func (self *_runtime) cmpl_evaluate_nodeAssignExpression(node *_nodeAssignExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeAssignExpression(node *_nodeAssignExpression) *Value {
 
 	left := self.cmpl_evaluate_nodeExpression(node.left)
 	right := self.cmpl_evaluate_nodeExpression(node.right)
@@ -134,7 +134,7 @@ func (self *_runtime) cmpl_evaluate_nodeAssignExpression(node *_nodeAssignExpres
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpression) *Value {
 
 	left := self.cmpl_evaluate_nodeExpression(node.left)
 	leftValue := left.resolve()
@@ -158,7 +158,7 @@ func (self *_runtime) cmpl_evaluate_nodeBinaryExpression(node *_nodeBinaryExpres
 	return self.calculateBinaryExpression(node.operator, leftValue, self.cmpl_evaluate_nodeExpression(node.right))
 }
 
-func (self *_runtime) cmpl_evaluate_nodeBinaryExpression_comparison(node *_nodeBinaryExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeBinaryExpression_comparison(node *_nodeBinaryExpression) *Value {
 
 	left := self.cmpl_evaluate_nodeExpression(node.left).resolve()
 	right := self.cmpl_evaluate_nodeExpression(node.right).resolve()
@@ -166,7 +166,7 @@ func (self *_runtime) cmpl_evaluate_nodeBinaryExpression_comparison(node *_nodeB
 	return toValue_bool(self.calculateComparison(node.operator, left, right))
 }
 
-func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpression) *Value {
 	target := self.cmpl_evaluate_nodeExpression(node.left)
 	targetValue := target.resolve()
 	member := self.cmpl_evaluate_nodeExpression(node.member)
@@ -180,16 +180,16 @@ func (self *_runtime) cmpl_evaluate_nodeBracketExpression(node *_nodeBracketExpr
 	return toValue(newPropertyReference(self, object, memberValue.string(), false, _at(node.idx)))
 }
 
-func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression, withArgumentList []interface{}) Value {
+func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression, withArgumentList []interface{}) *Value {
 	rt := self
-	this := Value{}
+	this := &Value{}
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
 
-	argumentList := []Value{}
+	argumentList := []*Value{}
 	if withArgumentList != nil {
 		argumentList = self.toValueArray(withArgumentList...)
 	} else {
-		argumentList = make([]Value, 0, len(node.argumentList))
+		argumentList = make([]*Value, 0, len(node.argumentList))
 		for _, argumentNode := range node.argumentList {
 			argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 		}
@@ -245,7 +245,7 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 	return vl._object().call(this, argumentList, eval, frame)
 }
 
-func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditionalExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditionalExpression) *Value {
 	test := self.cmpl_evaluate_nodeExpression(node.test)
 	testValue := test.resolve()
 	if testValue.bool() {
@@ -254,7 +254,7 @@ func (self *_runtime) cmpl_evaluate_nodeConditionalExpression(node *_nodeConditi
 	return self.cmpl_evaluate_nodeExpression(node.alternate)
 }
 
-func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) *Value {
 	target := self.cmpl_evaluate_nodeExpression(node.left)
 	targetValue := target.resolve()
 	// TODO Pass in base value as-is, and defer toObject till later?
@@ -265,11 +265,11 @@ func (self *_runtime) cmpl_evaluate_nodeDotExpression(node *_nodeDotExpression) 
 	return toValue(newPropertyReference(self, object, node.identifier, false, _at(node.idx)))
 }
 
-func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) *Value {
 	rt := self
 	callee := self.cmpl_evaluate_nodeExpression(node.callee)
 
-	argumentList := make([]Value, 0, len(node.argumentList))
+	argumentList := make([]*Value, 0, len(node.argumentList))
 	for _, argumentNode := range node.argumentList {
 		argumentList = append(argumentList, self.cmpl_evaluate_nodeExpression(argumentNode).resolve())
 	}
@@ -312,7 +312,7 @@ func (self *_runtime) cmpl_evaluate_nodeNewExpression(node *_nodeNewExpression) 
 	return vl._object().construct(argumentList)
 }
 
-func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) Value {
+func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) *Value {
 
 	result := self.newObject()
 
@@ -340,8 +340,8 @@ func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) 
 	return toValue_object(result)
 }
 
-func (self *_runtime) cmpl_evaluate_nodeSequenceExpression(node *_nodeSequenceExpression) Value {
-	var result Value
+func (self *_runtime) cmpl_evaluate_nodeSequenceExpression(node *_nodeSequenceExpression) *Value {
+	var result *Value
 	for _, node := range node.sequence {
 		result = self.cmpl_evaluate_nodeExpression(node)
 		result = result.resolve()
@@ -349,7 +349,7 @@ func (self *_runtime) cmpl_evaluate_nodeSequenceExpression(node *_nodeSequenceEx
 	return result
 }
 
-func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpression) *Value {
 
 	target := self.cmpl_evaluate_nodeExpression(node.operand)
 	switch node.operator {
@@ -415,7 +415,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 		}
 	case token.VOID:
 		target.resolve() // FIXME Side effect?
-		return Value{}
+		return &Value{}
 	case token.DELETE:
 		reference := target.reference()
 		if reference == nil {
@@ -448,7 +448,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 	panic(hereBeDragons())
 }
 
-func (self *_runtime) cmpl_evaluate_nodeVariableExpression(node *_nodeVariableExpression) Value {
+func (self *_runtime) cmpl_evaluate_nodeVariableExpression(node *_nodeVariableExpression) *Value {
 	if node.initializer != nil {
 		// FIXME If reference is nil
 		left := getIdentifierReference(self, self.scope.lexical, node.name, false, _at(node.idx))

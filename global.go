@@ -8,8 +8,8 @@ import (
 var (
 	prototypeValueObject   = interface{}(nil)
 	prototypeValueFunction = _nativeFunctionObject{
-		call: func(_ FunctionCall) Value {
-			return Value{}
+		call: func(_ FunctionCall) *Value {
+			return &Value{}
 		},
 	}
 	prototypeValueString = _stringASCII("")
@@ -26,7 +26,7 @@ var (
 		epoch: 0,
 		isNaN: false,
 		time:  time.Unix(0, 0).UTC(),
-		value: Value{
+		value: &Value{
 			kind:  valueNumber,
 			value: 0,
 		},
@@ -65,20 +65,20 @@ func (runtime *_runtime) newClassObject(class string) *_object {
 	return newObject(runtime, class)
 }
 
-func (runtime *_runtime) newPrimitiveObject(class string, value Value) *_object {
+func (runtime *_runtime) newPrimitiveObject(class string, value *Value) *_object {
 	self := runtime.newClassObject(class)
 	self.value = value
 	return self
 }
 
-func (self *_object) primitiveValue() Value {
+func (self *_object) primitiveValue() *Value {
 	switch value := self.value.(type) {
-	case Value:
+	case *Value:
 		return value
 	case _stringObject:
 		return toValue_string(value.String())
 	}
-	return Value{}
+	return &Value{}
 }
 
 func (self *_object) hasPrimitive() bool {
@@ -101,7 +101,7 @@ func (runtime *_runtime) newArray(length uint32) *_object {
 	return self
 }
 
-func (runtime *_runtime) newArrayOf(valueArray []Value) *_object {
+func (runtime *_runtime) newArrayOf(valueArray []*Value) *_object {
 	self := runtime.newArray(uint32(len(valueArray)))
 	for index, value := range valueArray {
 		if value.isEmpty() {
@@ -112,25 +112,25 @@ func (runtime *_runtime) newArrayOf(valueArray []Value) *_object {
 	return self
 }
 
-func (runtime *_runtime) newString(value Value) *_object {
+func (runtime *_runtime) newString(value *Value) *_object {
 	self := runtime.newStringObject(value)
 	self.prototype = runtime.global.StringPrototype
 	return self
 }
 
-func (runtime *_runtime) newBoolean(value Value) *_object {
+func (runtime *_runtime) newBoolean(value *Value) *_object {
 	self := runtime.newBooleanObject(value)
 	self.prototype = runtime.global.BooleanPrototype
 	return self
 }
 
-func (runtime *_runtime) newNumber(value Value) *_object {
+func (runtime *_runtime) newNumber(value *Value) *_object {
 	self := runtime.newNumberObject(value)
 	self.prototype = runtime.global.NumberPrototype
 	return self
 }
 
-func (runtime *_runtime) newRegExp(patternValue Value, flagsValue Value) *_object {
+func (runtime *_runtime) newRegExp(patternValue *Value, flagsValue *Value) *_object {
 
 	pattern := ""
 	flags := ""
@@ -166,7 +166,7 @@ func (runtime *_runtime) newDate(epoch float64) *_object {
 	return self
 }
 
-func (runtime *_runtime) newError(name string, message Value, stackFramesToPop int) *_object {
+func (runtime *_runtime) newError(name string, message *Value, stackFramesToPop int) *_object {
 	var self *_object
 	switch name {
 	case "EvalError":
@@ -211,7 +211,7 @@ func (runtime *_runtime) newNodeFunction(node *_nodeFunctionLiteral, scopeEnviro
 }
 
 // FIXME Only in one place...
-func (runtime *_runtime) newBoundFunction(target *_object, this Value, argumentList []Value) *_object {
+func (runtime *_runtime) newBoundFunction(target *_object, this *Value, argumentList []*Value) *_object {
 	self := runtime.newBoundFunctionObject(target, this, argumentList)
 	self.prototype = runtime.global.FunctionPrototype
 	prototype := runtime.newObject()

@@ -88,7 +88,7 @@ func (self *_runtime) enterGlobalScope() {
 	self.enterScope(newScope(self.globalStash, self.globalStash, self.globalObject))
 }
 
-func (self *_runtime) enterFunctionScope(outer _stash, this Value) *_fnStash {
+func (self *_runtime) enterFunctionScope(outer _stash, this *Value) *_fnStash {
 	if outer == nil {
 		outer = self.globalStash
 	}
@@ -104,7 +104,7 @@ func (self *_runtime) enterFunctionScope(outer _stash, this Value) *_fnStash {
 	return stash
 }
 
-func (self *_runtime) putValue(reference _reference, value Value) {
+func (self *_runtime) putValue(reference _reference, value *Value) {
 	name := reference.putValue(value)
 	if name != "" {
 		// Why? -- If reference.base == nil
@@ -113,7 +113,7 @@ func (self *_runtime) putValue(reference _reference, value Value) {
 	}
 }
 
-func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exception bool) {
+func (self *_runtime) tryCatchEvaluate(inner func() *Value) (tryValue *Value, exception bool) {
 	// resultValue = The value of the block (e.g. the last statement)
 	// throw = Something was thrown
 	// throwValue = The value of what was thrown
@@ -128,7 +128,7 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 			case _error:
 				exception = true
 				tryValue = toValue_object(self.newError(caught.name, caught.messageValue(), 0))
-			case Value:
+			case *Value:
 				exception = true
 				tryValue = caught
 			default:
@@ -143,7 +143,7 @@ func (self *_runtime) tryCatchEvaluate(inner func() Value) (tryValue Value, exce
 
 // toObject
 
-func (self *_runtime) toObject(value Value) *_object {
+func (self *_runtime) toObject(value *Value) *_object {
 	switch value.kind {
 	case valueEmpty, valueUndefined, valueNull:
 		panic(self.panicTypeError())
@@ -159,7 +159,7 @@ func (self *_runtime) toObject(value Value) *_object {
 	panic(self.panicTypeError())
 }
 
-func (self *_runtime) objectCoerce(value Value) (*_object, error) {
+func (self *_runtime) objectCoerce(value *Value) (*_object, error) {
 	switch value.kind {
 	case valueUndefined:
 		return nil, errors.New("undefined")
@@ -177,7 +177,7 @@ func (self *_runtime) objectCoerce(value Value) (*_object, error) {
 	panic(self.panicTypeError())
 }
 
-func checkObjectCoercible(rt *_runtime, value Value) {
+func checkObjectCoercible(rt *_runtime, value *Value) {
 	isObject, mustCoerce := testObjectCoercible(value)
 	if !isObject && !mustCoerce {
 		panic(rt.panicTypeError())
@@ -186,7 +186,7 @@ func checkObjectCoercible(rt *_runtime, value Value) {
 
 // testObjectCoercible
 
-func testObjectCoercible(value Value) (isObject bool, mustCoerce bool) {
+func testObjectCoercible(value *Value) (isObject bool, mustCoerce bool) {
 	switch value.kind {
 	case valueReference, valueEmpty, valueNull, valueUndefined:
 		return false, false
@@ -199,8 +199,8 @@ func testObjectCoercible(value Value) (isObject bool, mustCoerce bool) {
 	}
 }
 
-func (self *_runtime) safeToValue(value interface{}) (Value, error) {
-	result := Value{}
+func (self *_runtime) safeToValue(value interface{}) (*Value, error) {
+	result := &Value{}
 	err := catchPanic(func() {
 		result = self.toValue(value)
 	})
@@ -209,7 +209,7 @@ func (self *_runtime) safeToValue(value interface{}) (Value, error) {
 
 // convertNumeric converts numeric parameter val from js to that of type t if it is safe to do so, otherwise it panics.
 // This allows literals (int64), bitwise values (int32) and the general form (float64) of javascript numerics to be passed as parameters to go functions easily.
-func (self *_runtime) convertNumeric(v Value, t reflect.Type) reflect.Value {
+func (self *_runtime) convertNumeric(v *Value, t reflect.Type) reflect.Value {
 	val := reflect.ValueOf(v.export())
 
 	if val.Kind() == t.Kind() {
@@ -288,7 +288,7 @@ var typeOfValue = reflect.TypeOf(Value{})
 // convertCallParameter converts request val to type t if possible.
 // If the conversion fails due to overflow or type miss-match then it panics.
 // If no conversion is known then the original value is returned.
-func (self *_runtime) convertCallParameter(v Value, t reflect.Type) reflect.Value {
+func (self *_runtime) convertCallParameter(v *Value, t reflect.Type) reflect.Value {
 	if t == typeOfValue {
 		return reflect.ValueOf(v)
 	}
@@ -363,7 +363,7 @@ func (self *_runtime) convertCallParameter(v Value, t reflect.Type) reflect.Valu
 							continue
 						}
 
-						e, ok := p.value.(Value)
+						e, ok := p.value.(*Value)
 						if !ok {
 							continue
 						}
@@ -393,7 +393,7 @@ func (self *_runtime) convertCallParameter(v Value, t reflect.Type) reflect.Valu
 							continue
 						}
 
-						e, ok := p.value.(Value)
+						e, ok := p.value.(*Value)
 						if !ok {
 							continue
 						}
@@ -483,11 +483,11 @@ func (self *_runtime) convertCallParameter(v Value, t reflect.Type) reflect.Valu
 	panic(self.panicTypeError("can't convert from %q to %q", s, t.String()))
 }
 
-func (self *_runtime) toValue(value interface{}) Value {
+func (self *_runtime) toValue(value interface{}) *Value {
 	switch value := value.(type) {
-	case Value:
+	case *Value:
 		return value
-	case func(FunctionCall) Value:
+	case func(FunctionCall) *Value:
 		var name, file string
 		var line int
 		pc := reflect.ValueOf(value).Pointer()
@@ -548,7 +548,7 @@ func (self *_runtime) toValue(value interface{}) Value {
 
 				typ := value.Type()
 
-				return toValue_object(self.newNativeFunction(name, file, line, func(c FunctionCall) Value {
+				return toValue_object(self.newNativeFunction(name, file, line, func(c FunctionCall) *Value {
 					nargs := typ.NumIn()
 
 					if len(c.ArgumentList) != nargs {
@@ -605,7 +605,7 @@ func (self *_runtime) toValue(value interface{}) Value {
 
 					switch len(out) {
 					case 0:
-						return Value{}
+						return &Value{}
 					case 1:
 						return self.toValue(out[0].Interface())
 					default:
@@ -662,8 +662,8 @@ func (self *_runtime) parseSource(src, sm interface{}) (*_nodeProgram, *ast.Prog
 	return nil, program, err
 }
 
-func (self *_runtime) cmpl_runOrEval(src, sm interface{}, eval bool) (Value, error) {
-	result := Value{}
+func (self *_runtime) cmpl_runOrEval(src, sm interface{}, eval bool) (*Value, error) {
+	result := &Value{}
 	cmpl_program, program, err := self.parseSource(src, sm)
 	if err != nil {
 		return result, err
@@ -676,18 +676,18 @@ func (self *_runtime) cmpl_runOrEval(src, sm interface{}, eval bool) (Value, err
 	})
 	switch result.kind {
 	case valueEmpty:
-		result = Value{}
+		result = &Value{}
 	case valueReference:
 		result = result.resolve()
 	}
 	return result, err
 }
 
-func (self *_runtime) cmpl_run(src, sm interface{}) (Value, error) {
+func (self *_runtime) cmpl_run(src, sm interface{}) (*Value, error) {
 	return self.cmpl_runOrEval(src, sm, false)
 }
 
-func (self *_runtime) cmpl_eval(src, sm interface{}) (Value, error) {
+func (self *_runtime) cmpl_eval(src, sm interface{}) (*Value, error) {
 	return self.cmpl_runOrEval(src, sm, true)
 }
 

@@ -14,16 +14,16 @@ func isIdentifier(string_ string) bool {
 	return isIdentifier_Regexp.MatchString(string_)
 }
 
-func (self *_runtime) toValueArray(arguments ...interface{}) []Value {
+func (self *_runtime) toValueArray(arguments ...interface{}) []*Value {
 	length := len(arguments)
 	if length == 1 {
-		if valueArray, ok := arguments[0].([]Value); ok {
+		if valueArray, ok := arguments[0].([]*Value); ok {
 			return valueArray
 		}
-		return []Value{self.toValue(arguments[0])}
+		return []*Value{self.toValue(arguments[0])}
 	}
 
-	valueArray := make([]Value, length)
+	valueArray := make([]*Value, length)
 	for index, value := range arguments {
 		valueArray[index] = self.toValue(value)
 	}
@@ -55,24 +55,24 @@ func arrayIndexToString(index int64) string {
 	return strconv.FormatInt(index, 10)
 }
 
-func valueOfArrayIndex(array []Value, index int) Value {
+func valueOfArrayIndex(array []*Value, index int) *Value {
 	value, _ := getValueOfArrayIndex(array, index)
 	return value
 }
 
-func getValueOfArrayIndex(array []Value, index int) (Value, bool) {
+func getValueOfArrayIndex(array []*Value, index int) (*Value, bool) {
 	if index >= 0 && index < len(array) {
 		value := array[index]
 		if !value.isEmpty() {
 			return value, true
 		}
 	}
-	return Value{}, false
+	return &Value{}, false
 }
 
 // A range index can be anything from 0 up to length. It is NOT safe to use as an index
 // to an array, but is useful for slicing and in some ECMA algorithms.
-func valueToRangeIndex(indexValue Value, length int64, negativeIsZero bool) int64 {
+func valueToRangeIndex(indexValue *Value, length int64, negativeIsZero bool) int64 {
 	index := indexValue.number().int64
 	if negativeIsZero {
 		if index < 0 {
@@ -98,7 +98,7 @@ func valueToRangeIndex(indexValue Value, length int64, negativeIsZero bool) int6
 	return index
 }
 
-func rangeStartEnd(array []Value, size int64, negativeIsZero bool) (start, end int64) {
+func rangeStartEnd(array []*Value, size int64, negativeIsZero bool) (start, end int64) {
 	start = valueToRangeIndex(valueOfArrayIndex(array, 0), size, negativeIsZero)
 	if len(array) == 1 {
 		// If there is only the start argument, then end = size
@@ -116,7 +116,7 @@ func rangeStartEnd(array []Value, size int64, negativeIsZero bool) (start, end i
 	return
 }
 
-func rangeStartLength(source []Value, size int64) (start, length int64) {
+func rangeStartLength(source []*Value, size int64) (start, length int64) {
 	start = valueToRangeIndex(valueOfArrayIndex(source, 0), size, false)
 
 	// Assume the second argument is missing or undefined

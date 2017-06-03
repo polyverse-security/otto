@@ -8,12 +8,12 @@ import (
 	"github.com/robertkrimen/otto/token"
 )
 
-func (self *_runtime) evaluateMultiply(left float64, right float64) Value {
+func (self *_runtime) evaluateMultiply(left float64, right float64) *Value {
 	// TODO 11.5.1
-	return Value{}
+	return &Value{}
 }
 
-func (self *_runtime) evaluateDivide(left float64, right float64) Value {
+func (self *_runtime) evaluateDivide(left float64, right float64) *Value {
 	if math.IsNaN(left) || math.IsNaN(right) {
 		return NaNValue()
 	}
@@ -47,12 +47,12 @@ func (self *_runtime) evaluateDivide(left float64, right float64) Value {
 	return toValue_float64(left / right)
 }
 
-func (self *_runtime) evaluateModulo(left float64, right float64) Value {
+func (self *_runtime) evaluateModulo(left float64, right float64) *Value {
 	// TODO 11.5.3
-	return Value{}
+	return &Value{}
 }
 
-func (self *_runtime) calculateBinaryExpression(operator token.Token, left Value, right Value) Value {
+func (self *_runtime) calculateBinaryExpression(operator token.Token, left *Value, right *Value) *Value {
 
 	leftValue := left.resolve()
 
@@ -165,9 +165,9 @@ const (
 	lessThanUndefined
 )
 
-func calculateLessThan(left Value, right Value, leftFirst bool) _lessThanResult {
+func calculateLessThan(left *Value, right *Value, leftFirst bool) _lessThanResult {
 
-	x := Value{}
+	x := &Value{}
 	y := x
 
 	if leftFirst {
@@ -228,7 +228,7 @@ var lessThanTable [4](map[_lessThanResult]bool) = [4](map[_lessThanResult]bool){
 	},
 }
 
-func (self *_runtime) calculateComparison(comparator token.Token, left Value, right Value) bool {
+func (self *_runtime) calculateComparison(comparator token.Token, left *Value, right *Value) bool {
 
 	// FIXME Use strictEqualityComparison?
 	// TODO This might be redundant now (with regards to evaluateComparison)

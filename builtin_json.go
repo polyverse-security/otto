@@ -9,10 +9,10 @@ import (
 
 type _builtinJSON_parseContext struct {
 	call    FunctionCall
-	reviver Value
+	reviver *Value
 }
 
-func builtinJSON_parse(call FunctionCall) Value {
+func builtinJSON_parse(call FunctionCall) *Value {
 	ctx := _builtinJSON_parseContext{
 		call: call,
 	}
@@ -29,7 +29,7 @@ func builtinJSON_parse(call FunctionCall) Value {
 	}
 	value, exists := builtinJSON_parseWalk(ctx, root)
 	if !exists {
-		value = Value{}
+		value = &Value{}
 	}
 	if revive {
 		root := ctx.call.runtime.newObject()
@@ -39,7 +39,7 @@ func builtinJSON_parse(call FunctionCall) Value {
 	return value
 }
 
-func builtinJSON_reviveWalk(ctx _builtinJSON_parseContext, holder *_object, name string) Value {
+func builtinJSON_reviveWalk(ctx _builtinJSON_parseContext, holder *_object, name string) *Value {
 	value := holder.get(name)
 	if object := value._object(); object != nil {
 		if isArray(object) {
@@ -68,7 +68,7 @@ func builtinJSON_reviveWalk(ctx _builtinJSON_parseContext, holder *_object, name
 	return ctx.reviver.call(ctx.call.runtime, toValue_object(holder), name, value)
 }
 
-func builtinJSON_parseWalk(ctx _builtinJSON_parseContext, rawValue interface{}) (Value, bool) {
+func builtinJSON_parseWalk(ctx _builtinJSON_parseContext, rawValue interface{}) (*Value, bool) {
 	switch value := rawValue.(type) {
 	case nil:
 		return nullValue, true
@@ -79,7 +79,7 @@ func builtinJSON_parseWalk(ctx _builtinJSON_parseContext, rawValue interface{}) 
 	case float64:
 		return toValue_float64(value), true
 	case []interface{}:
-		arrayValue := make([]Value, len(value))
+		arrayValue := make([]*Value, len(value))
 		for index, rawValue := range value {
 			if value, exists := builtinJSON_parseWalk(ctx, rawValue); exists {
 				arrayValue[index] = value
@@ -95,7 +95,7 @@ func builtinJSON_parseWalk(ctx _builtinJSON_parseContext, rawValue interface{}) 
 		}
 		return toValue_object(object), true
 	}
-	return Value{}, false
+	return &Value{}, false
 }
 
 type _builtinJSON_stringifyContext struct {
@@ -106,7 +106,7 @@ type _builtinJSON_stringifyContext struct {
 	gap              string
 }
 
-func builtinJSON_stringify(call FunctionCall) Value {
+func builtinJSON_stringify(call FunctionCall) *Value {
 	ctx := _builtinJSON_stringifyContext{
 		call:  call,
 		stack: []*_object{nil},
@@ -144,7 +144,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 			ctx.propertyList = propertyList[0:length]
 		} else if replacer.class == "Function" {
 			value := toValue_object(replacer)
-			ctx.replacerFunction = &value
+			ctx.replacerFunction = value
 		}
 	}
 	if spaceValue, exists := call.getArgument(2); exists {
@@ -178,7 +178,7 @@ func builtinJSON_stringify(call FunctionCall) Value {
 	holder.put("", call.Argument(0), false)
 	value, exists := builtinJSON_stringifyWalk(ctx, "", holder)
 	if !exists {
-		return Value{}
+		return &Value{}
 	}
 	valueJSON, err := json.Marshal(value)
 	if err != nil {
@@ -217,7 +217,7 @@ func builtinJSON_stringifyWalk(ctx _builtinJSON_stringifyContext, key string, ho
 	if value.kind == valueObject {
 		switch value.value.(*_object).class {
 		case "Boolean":
-			value = value._object().value.(Value)
+			value = value._object().value.(*Value)
 		case "String":
 			value = toValue_string(value.string())
 		case "Number":

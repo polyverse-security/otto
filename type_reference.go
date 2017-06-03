@@ -2,8 +2,8 @@ package otto
 
 type _reference interface {
 	invalid() bool         // IsUnresolvableReference
-	getValue() Value       // getValue
-	putValue(Value) string // PutValue
+	getValue() *Value       // getValue
+	putValue(*Value) string // PutValue
 	delete() bool
 }
 
@@ -31,14 +31,14 @@ func (self *_propertyReference) invalid() bool {
 	return self.base == nil
 }
 
-func (self *_propertyReference) getValue() Value {
+func (self *_propertyReference) getValue() *Value {
 	if self.base == nil {
 		panic(self.runtime.panicReferenceError("'%s' is not defined", self.name, self.at))
 	}
 	return self.base.get(self.name)
 }
 
-func (self *_propertyReference) putValue(value Value) string {
+func (self *_propertyReference) putValue(value *Value) string {
 	if self.base == nil {
 		return self.name
 	}
@@ -73,11 +73,11 @@ func (self *_stashReference) invalid() bool {
 	return false // The base (an environment) will never be nil
 }
 
-func (self *_stashReference) getValue() Value {
+func (self *_stashReference) getValue() *Value {
 	return self.base.getBinding(self.name, self.strict)
 }
 
-func (self *_stashReference) putValue(value Value) string {
+func (self *_stashReference) putValue(value *Value) string {
 	self.base.setValue(self.name, value, self.strict)
 	return ""
 }

@@ -38,12 +38,12 @@ func ExampleSynopsis() {
 	fmt.Println(value)
 	fmt.Println(err)
 
-	vm.Set("sayHello", func(call FunctionCall) Value {
+	vm.Set("sayHello", func(call FunctionCall) *Value {
 		fmt.Printf("Hello, %s.\n", call.Argument(0).String())
 		return UndefinedValue()
 	})
 
-	vm.Set("twoPlus", func(call FunctionCall) Value {
+	vm.Set("twoPlus", func(call FunctionCall) *Value {
 		right, _ := call.Argument(0).ToInteger()
 		result, _ := vm.ToValue(2 + right)
 		return result
@@ -74,7 +74,7 @@ func ExampleConsole() {
 
 	vm := New()
 	console := map[string]interface{}{
-		"log": func(call FunctionCall) Value {
+		"log": func(call FunctionCall) *Value {
 			fmt.Println("console.log:", formatForConsole(call.ArgumentList))
 			return UndefinedValue()
 		},

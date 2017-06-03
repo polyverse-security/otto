@@ -274,7 +274,7 @@ func (otto *Otto) clone() *Otto {
 //
 // src may also be a Program, but if the AST has been modified, then runtime behavior is undefined.
 //
-func Run(src interface{}) (*Otto, Value, error) {
+func Run(src interface{}) (*Otto, *Value, error) {
 	otto := New()
 	value, err := otto.Run(src) // This already does safety checking
 	return otto, value, err
@@ -291,10 +291,10 @@ func Run(src interface{}) (*Otto, Value, error) {
 //
 // src may also be a Program, but if the AST has been modified, then runtime behavior is undefined.
 //
-func (self Otto) Run(src interface{}) (Value, error) {
+func (self Otto) Run(src interface{}) (*Value, error) {
 	value, err := self.runtime.cmpl_run(src, nil)
 	if !value.safe() {
-		value = Value{}
+		value = &Value{}
 	}
 	return value, err
 }
@@ -304,7 +304,7 @@ func (self Otto) Run(src interface{}) (Value, error) {
 // By staying in the same scope, the code evaluated has access to everything
 // already defined in the current stack frame. This is most useful in, for
 // example, a debugger call.
-func (self Otto) Eval(src interface{}) (Value, error) {
+func (self Otto) Eval(src interface{}) (*Value, error) {
 	if self.runtime.scope == nil {
 		self.runtime.enterGlobalScope()
 		defer self.runtime.leaveScope()
@@ -312,7 +312,7 @@ func (self Otto) Eval(src interface{}) (Value, error) {
 
 	value, err := self.runtime.cmpl_eval(src, nil)
 	if !value.safe() {
-		value = Value{}
+		value = &Value{}
 	}
 	return value, err
 }
@@ -321,18 +321,18 @@ func (self Otto) Eval(src interface{}) (Value, error) {
 //
 // If there is an error (like the binding does not exist), then the value
 // will be undefined.
-func (self Otto) Get(name string) (Value, error) {
-	value := Value{}
+func (self Otto) Get(name string) (*Value, error) {
+	value := &Value{}
 	err := catchPanic(func() {
 		value = self.getValue(name)
 	})
 	if !value.safe() {
-		value = Value{}
+		value = &Value{}
 	}
 	return value, err
 }
 
-func (self Otto) getValue(name string) Value {
+func (self Otto) getValue(name string) *Value {
 	return self.runtime.globalStash.getBinding(name, false)
 }
 
@@ -358,7 +358,7 @@ func (self Otto) Set(name string, value interface{}) error {
 	}
 }
 
-func (self Otto) setValue(name string, value Value) {
+func (self Otto) setValue(name string, value *Value) {
 	self.runtime.globalStash.setValue(name, value, false)
 }
 
@@ -393,25 +393,25 @@ func (self Otto) SetStackTraceLimit(limit int) {
 
 // MakeCustomError creates a new Error object with the given name and message,
 // returning it as a Value.
-func (self Otto) MakeCustomError(name, message string) Value {
+func (self Otto) MakeCustomError(name, message string) *Value {
 	return self.runtime.toValue(self.runtime.newError(name, self.runtime.toValue(message), 0))
 }
 
 // MakeRangeError creates a new RangeError object with the given message,
 // returning it as a Value.
-func (self Otto) MakeRangeError(message string) Value {
+func (self Otto) MakeRangeError(message string) *Value {
 	return self.runtime.toValue(self.runtime.newRangeError(self.runtime.toValue(message)))
 }
 
 // MakeSyntaxError creates a new SyntaxError object with the given message,
 // returning it as a Value.
-func (self Otto) MakeSyntaxError(message string) Value {
+func (self Otto) MakeSyntaxError(message string) *Value {
 	return self.runtime.toValue(self.runtime.newSyntaxError(self.runtime.toValue(message)))
 }
 
 // MakeTypeError creates a new TypeError object with the given message,
 // returning it as a Value.
-func (self Otto) MakeTypeError(message string) Value {
+func (self Otto) MakeTypeError(message string) *Value {
 	return self.runtime.toValue(self.runtime.newTypeError(self.runtime.toValue(message)))
 }
 
@@ -422,8 +422,8 @@ type Context struct {
 	Line       int
 	Column     int
 	Callee     string
-	Symbols    map[string]Value
-	This       Value
+	Symbols    map[string]*Value
+	This       *Value
 	Stacktrace []string
 }
 
@@ -484,7 +484,7 @@ func (self Otto) ContextSkip(limit int, skipNative bool) (ctx Context) {
 	ctx.This = toValue_object(scope.this)
 
 	// Build stacktrace (up to 10 levels deep)
-	ctx.Symbols = make(map[string]Value)
+	ctx.Symbols = make(map[string]*Value)
 	ctx.Stacktrace = append(ctx.Stacktrace, frame.location())
 	for limit != 0 {
 		// Get variables
@@ -534,9 +534,9 @@ func (self Otto) ContextSkip(limit int, skipNative bool) (ctx Context) {
 //      // value is [ 1, 2, 3, undefined, 4, 5, 6, 7, "abc" ]
 //      value, _ := vm.Call(`[ 1, 2, 3, undefined, 4 ].concat`, nil, 5, 6, 7, "abc")
 //
-func (self Otto) Call(source string, this interface{}, argumentList ...interface{}) (Value, error) {
+func (self Otto) Call(source string, this interface{}, argumentList ...interface{}) (*Value, error) {
 
-	thisValue := Value{}
+	thisValue := &Value{}
 
 	construct := false
 	if strings.HasPrefix(source, "new ") {
@@ -555,12 +555,12 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 		if err == nil {
 			if node, ok := program.body[0].(*_nodeExpressionStatement); ok {
 				if node, ok := node.expression.(*_nodeCallExpression); ok {
-					var value Value
+					var value *Value
 					err := catchPanic(func() {
 						value = self.runtime.cmpl_evaluate_nodeCallExpression(node, argumentList)
 					})
 					if err != nil {
-						return Value{}, err
+						return &Value{}, err
 					}
 					return value, nil
 				}
@@ -569,30 +569,31 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 	} else {
 		value, err := self.ToValue(this)
 		if err != nil {
-			return Value{}, err
+			return &Value{}, err
 		}
 		thisValue = value
 	}
 
 	{
+		//TODO: possible clone
 		this := thisValue
 
 		fn, err := self.Run(source)
 		if err != nil {
-			return Value{}, err
+			return &Value{}, err
 		}
 
 		if construct {
 			result, err := fn.constructSafe(self.runtime, this, argumentList...)
 			if err != nil {
-				return Value{}, err
+				return &Value{}, err
 			}
 			return result, nil
 		}
 
 		result, err := fn.Call(this, argumentList...)
 		if err != nil {
-			return Value{}, err
+			return &Value{}, err
 		}
 		return result, nil
 	}
@@ -627,7 +628,7 @@ func (self Otto) Object(source string) (*Object, error) {
 }
 
 // ToValue will convert an interface{} value to a value digestible by otto/JavaScript.
-func (self Otto) ToValue(value interface{}) (Value, error) {
+func (self Otto) ToValue(value interface{}) (*Value, error) {
 	return self.runtime.safeToValue(value)
 }
 
@@ -652,10 +653,10 @@ func (in *Otto) Copy() *Otto {
 // Object is the representation of a JavaScript object.
 type Object struct {
 	object *_object
-	value  Value
+	value  *Value
 }
 
-func _newObject(object *_object, value Value) *Object {
+func _newObject(object *_object, value *Value) *Object {
 	// value MUST contain object!
 	return &Object{
 		object: object,
@@ -676,30 +677,30 @@ func _newObject(object *_object, value Value) *Object {
 //		2. The property is not actually a function
 //		3. An (uncaught) exception is thrown
 //
-func (self Object) Call(name string, argumentList ...interface{}) (Value, error) {
+func (self Object) Call(name string, argumentList ...interface{}) (*Value, error) {
 	// TODO: Insert an example using JavaScript below...
 	// e.g., Object("JSON").Call("stringify", ...)
 
 	function, err := self.Get(name)
 	if err != nil {
-		return Value{}, err
+		return &Value{}, err
 	}
 	return function.Call(self.Value(), argumentList...)
 }
 
 // Value will return self as a value.
-func (self Object) Value() Value {
+func (self Object) Value() *Value {
 	return self.value
 }
 
 // Get the value of the property with the given name.
-func (self Object) Get(name string) (Value, error) {
-	value := Value{}
+func (self Object) Get(name string) (*Value, error) {
+	value := &Value{}
 	err := catchPanic(func() {
 		value = self.object.get(name)
 	})
 	if !value.safe() {
-		value = Value{}
+		value = &Value{}
 	}
 	return value, err
 }

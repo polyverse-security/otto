@@ -29,7 +29,7 @@ func floatToString(value float64, bitsize int) string {
 	return strconv.FormatFloat(value, 'f', -1, bitsize)
 }
 
-func numberToStringRadix(value Value, radix int) string {
+func numberToStringRadix(value *Value, radix int) string {
 	float := value.float64()
 	if math.IsNaN(float) {
 		return "NaN"

@@ -38,7 +38,7 @@ func (self *_object) getProperty(name string) *_property {
 }
 
 // 8.12.3
-func (self *_object) get(name string) Value {
+func (self *_object) get(name string) *Value {
 	return self.objectClass.get(self, name)
 }
 
@@ -48,7 +48,7 @@ func (self *_object) canPut(name string) bool {
 }
 
 // 8.12.5
-func (self *_object) put(name string, value Value, throw bool) {
+func (self *_object) put(name string, value *Value, throw bool) {
 	self.objectClass.put(self, name, value, throw)
 }
 
@@ -70,7 +70,7 @@ const (
 )
 
 // 8.12.8
-func (self *_object) DefaultValue(hint _defaultValueHint) Value {
+func (self *_object) DefaultValue(hint _defaultValueHint) *Value {
 	if hint == defaultValueNoHint {
 		if self.class == "Date" {
 			// Date exception
@@ -101,7 +101,7 @@ func (self *_object) String() string {
 	return self.DefaultValue(defaultValueHintString).string()
 }
 
-func (self *_object) defineProperty(name string, value Value, mode _propertyMode, throw bool) bool {
+func (self *_object) defineProperty(name string, value *Value, mode _propertyMode, throw bool) bool {
 	return self.defineOwnProperty(name, _property{value, mode}, throw)
 }
 

@@ -22,12 +22,12 @@ func TestFunction_stack(t *testing.T) {
 			{native: false, nativeFile: "", nativeLine: 0, offset: 29, callee: "X", file: s.program.file},
 		}
 
-		vm.Set("A", func(c FunctionCall) Value {
+		vm.Set("A", func(c FunctionCall) *Value {
 			c.Argument(0).Call(UndefinedValue())
 			return UndefinedValue()
 		})
 
-		vm.Set("B", func(c FunctionCall) Value {
+		vm.Set("B", func(c FunctionCall) *Value {
 			depth := 0
 			for scope := c.Otto.runtime.scope; scope != nil; scope = scope.outer {
 				is(scope.frame, expected[depth])

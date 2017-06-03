@@ -58,7 +58,7 @@ func (self _goStructObject) method(name string) (reflect.Method, bool) {
 	return reflect.Indirect(self.value).Type().MethodByName(name)
 }
 
-func (self _goStructObject) setValue(name string, value Value) bool {
+func (self _goStructObject) setValue(name string, value *Value) bool {
 	field, exists := self.field(name)
 	if !exists {
 		return false
@@ -126,7 +126,7 @@ func goStructCanPut(self *_object, name string) bool {
 	return objectCanPut(self, name)
 }
 
-func goStructPut(self *_object, name string, value Value, throw bool) {
+func goStructPut(self *_object, name string, value *Value, throw bool) {
 	object := self.value.(*_goStructObject)
 	if object.setValue(name, value) {
 		return

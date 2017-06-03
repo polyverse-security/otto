@@ -14,7 +14,7 @@ func TestGlobal(t *testing.T) {
 		runtime := vm.vm.runtime
 
 		{
-			call := func(object interface{}, src string, argumentList ...interface{}) Value {
+			call := func(object interface{}, src string, argumentList ...interface{}) *Value {
 				var tgt *Object
 				switch object := object.(type) {
 				case Value:

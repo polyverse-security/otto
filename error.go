@@ -120,9 +120,9 @@ func (err _error) describe(format string, in ...interface{}) string {
 	return fmt.Sprintf(format, in...)
 }
 
-func (self _error) messageValue() Value {
+func (self _error) messageValue() *Value {
 	if self.message == "" {
-		return Value{}
+		return &Value{}
 	}
 	return toValue_string(self.message)
 }

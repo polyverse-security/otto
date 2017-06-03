@@ -13,11 +13,11 @@ const (
 
 type _result struct {
 	kind   _resultKind
-	value  Value
+	value  *Value
 	target string
 }
 
-func newReturnResult(value Value) _result {
+func newReturnResult(value *Value) _result {
 	return _result{resultReturn, value, ""}
 }
 

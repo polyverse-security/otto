@@ -79,16 +79,16 @@ func (self _property) copy() *_property {
 	return &property
 }
 
-func (self _property) get(this *_object) Value {
+func (self _property) get(this *_object) *Value {
 	switch value := self.value.(type) {
-	case Value:
+	case *Value:
 		return value
 	case _propertyGetSet:
 		if value[0] != nil {
 			return value[0].call(toValue(this), nil, false, nativeFrame)
 		}
 	}
-	return Value{}
+	return &Value{}
 }
 
 func (self _property) isAccessorDescriptor() bool {
@@ -115,7 +115,7 @@ func (self _property) isEmpty() bool {
 // _enumerableValue, _enumerableTrue, _enumerableFalse?
 // .enumerableValue() .enumerableExists()
 
-func toPropertyDescriptor(rt *_runtime, value Value) (descriptor _property) {
+func toPropertyDescriptor(rt *_runtime, value *Value) (descriptor _property) {
 	objectDescriptor := value._object()
 	if objectDescriptor == nil {
 		panic(rt.panicTypeError())
@@ -199,15 +199,15 @@ func toPropertyDescriptor(rt *_runtime, value Value) (descriptor _property) {
 func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
 	object := self.newObject()
 	if descriptor.isDataDescriptor() {
-		object.defineProperty("value", descriptor.value.(Value), 0111, false)
+		object.defineProperty("value", descriptor.value.(*Value), 0111, false)
 		object.defineProperty("writable", toValue_bool(descriptor.writable()), 0111, false)
 	} else if descriptor.isAccessorDescriptor() {
 		getSet := descriptor.value.(_propertyGetSet)
-		get := Value{}
+		get := &Value{}
 		if getSet[0] != nil {
 			get = toValue_object(getSet[0])
 		}
-		set := Value{}
+		set := &Value{}
 		if getSet[1] != nil {
 			set = toValue_object(getSet[1])
 		}

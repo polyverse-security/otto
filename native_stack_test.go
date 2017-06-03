@@ -17,7 +17,7 @@ func TestNativeStackFrames(t *testing.T) {
 			panic(err)
 		}
 
-		vm.Set("ext1", func(c FunctionCall) Value {
+		vm.Set("ext1", func(c FunctionCall) *Value {
 			if _, err := c.Otto.Eval("B()"); err != nil {
 				panic(err)
 			}
@@ -25,7 +25,7 @@ func TestNativeStackFrames(t *testing.T) {
 			return UndefinedValue()
 		})
 
-		vm.Set("ext2", func(c FunctionCall) Value {
+		vm.Set("ext2", func(c FunctionCall) *Value {
 			{
 				// no limit, include innermost native frames
 				ctx := c.Otto.ContextSkip(-1, false)
@@ -66,7 +66,7 @@ func TestNativeStackFrames(t *testing.T) {
 			return UndefinedValue()
 		})
 
-		vm.Set("ext3", func(c FunctionCall) Value {
+		vm.Set("ext3", func(c FunctionCall) *Value {
 			{
 				// no limit, include innermost native frames
 				ctx := c.Otto.ContextSkip(-1, false)

@@ -44,19 +44,19 @@ func (in _argumentsObject) clone(clone *_clone) _argumentsObject {
 	}
 }
 
-func (self _argumentsObject) get(name string) (Value, bool) {
+func (self _argumentsObject) get(name string) (*Value, bool) {
 	index := stringToArrayIndex(name)
 	if index >= 0 && index < int64(len(self.indexOfParameterName)) {
 		name := self.indexOfParameterName[index]
 		if name == "" {
-			return Value{}, false
+			return &Value{}, false
 		}
 		return self.stash.getBinding(name, false), true
 	}
-	return Value{}, false
+	return &Value{}, false
 }
 
-func (self _argumentsObject) put(name string, value Value) {
+func (self _argumentsObject) put(name string, value *Value) {
 	index := stringToArrayIndex(name)
 	name = self.indexOfParameterName[index]
 	self.stash.setBinding(name, value, false)
@@ -67,7 +67,7 @@ func (self _argumentsObject) delete(name string) {
 	self.indexOfParameterName[index] = ""
 }
 
-func argumentsGet(self *_object, name string) Value {
+func argumentsGet(self *_object, name string) *Value {
 	if value, exists := self.value.(_argumentsObject).get(name); exists {
 		return value
 	}
@@ -87,7 +87,7 @@ func argumentsDefineOwnProperty(self *_object, name string, descriptor _property
 		if !objectDefineOwnProperty(self, name, descriptor, false) {
 			return self.runtime.typeErrorResult(throw)
 		}
-		if value, valid := descriptor.value.(Value); valid {
+		if value, valid := descriptor.value.(*Value); valid {
 			self.value.(_argumentsObject).put(name, value)
 		}
 		return true

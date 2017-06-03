@@ -7,9 +7,9 @@ import (
 type _objectClass struct {
 	getOwnProperty    func(*_object, string) *_property
 	getProperty       func(*_object, string) *_property
-	get               func(*_object, string) Value
+	get               func(*_object, string) *Value
 	canPut            func(*_object, string) bool
-	put               func(*_object, string, Value, bool)
+	put               func(*_object, string, *Value, bool)
 	hasProperty       func(*_object, string) bool
 	hasOwnProperty    func(*_object, string) bool
 	defineOwnProperty func(*_object, string, _property, bool) bool
@@ -188,12 +188,12 @@ func objectGetProperty(self *_object, name string) *_property {
 }
 
 // 8.12.3
-func objectGet(self *_object, name string) Value {
+func objectGet(self *_object, name string) *Value {
 	property := self.getProperty(name)
 	if property != nil {
 		return property.get(self)
 	}
-	return Value{}
+	return &Value{}
 }
 
 // 8.12.4
@@ -243,7 +243,7 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 }
 
 // 8.12.5
-func objectPut(self *_object, name string, value Value, throw bool) {
+func objectPut(self *_object, name string, value *Value, throw bool) {
 
 	if true {
 		// Shortcut...
@@ -258,7 +258,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		if !canPut {
 			self.runtime.typeErrorResult(throw)
 		} else if setter != nil {
-			setter.call(toValue(self), []Value{value}, false, nativeFrame)
+			setter.call(toValue(self), []*Value{value}, false, nativeFrame)
 		} else if property != nil {
 			property.value = value
 			self.defineOwnProperty(name, *property, throw)
@@ -281,7 +281,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 		property = self.getProperty(name)
 		if property != nil {
 			if getSet, isAccessor := property.value.(_propertyGetSet); isAccessor {
-				getSet[1].call(toValue(self), []Value{value}, false, nativeFrame)
+				getSet[1].call(toValue(self), []*Value{value}, false, nativeFrame)
 				return
 			}
 		}
@@ -293,7 +293,7 @@ func objectPut(self *_object, name string, value Value, throw bool) {
 			self.defineOwnProperty(name, *property, throw)
 		case _propertyGetSet:
 			if propertyValue[1] != nil {
-				propertyValue[1].call(toValue(self), []Value{value}, false, nativeFrame)
+				propertyValue[1].call(toValue(self), []*Value{value}, false, nativeFrame)
 				return
 			}
 			if throw {
@@ -352,7 +352,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				goto Reject
 			}
 		}
-		value, isDataDescriptor := property.value.(Value)
+		value, isDataDescriptor := property.value.(*Value)
 		getSet, _ := property.value.(_propertyGetSet)
 		if descriptor.isGenericDescriptor() {
 			// GenericDescriptor
@@ -368,7 +368,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 					goto Reject
 				}
 				if !property.writable() {
-					if descriptor.value != nil && !sameValue(value, descriptor.value.(Value)) {
+					if descriptor.value != nil && !sameValue(value, descriptor.value.(*Value)) {
 						goto Reject
 					}
 				}

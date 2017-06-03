@@ -35,18 +35,18 @@ func (value Value) safe() bool {
 }
 
 var (
-	emptyValue = Value{kind: valueEmpty}
-	nullValue  = Value{kind: valueNull}
-	falseValue = Value{kind: valueBoolean, value: false}
-	trueValue  = Value{kind: valueBoolean, value: true}
+	emptyValue = &Value{kind: valueEmpty}
+	nullValue  = &Value{kind: valueNull}
+	falseValue = &Value{kind: valueBoolean, value: false}
+	trueValue  = &Value{kind: valueBoolean, value: true}
 )
 
 // ToValue will convert an interface{} value to a value digestible by otto/JavaScript
 //
 // This function will not work for advanced types (struct, map, slice/array, etc.) and
 // you should use Otto.ToValue instead.
-func ToValue(value interface{}) (Value, error) {
-	result := Value{}
+func ToValue(value interface{}) (*Value, error) {
+	result := &Value{}
 	err := catchPanic(func() {
 		result = toValue(value)
 	})
@@ -60,8 +60,8 @@ func (value Value) isEmpty() bool {
 // Undefined
 
 // UndefinedValue will return a Value representing undefined.
-func UndefinedValue() Value {
-	return Value{}
+func UndefinedValue() *Value {
+	return &Value{}
 }
 
 // IsDefined will return false if the value is undefined, and true otherwise.
@@ -75,8 +75,8 @@ func (value Value) IsUndefined() bool {
 }
 
 // NullValue will return a Value representing null.
-func NullValue() Value {
-	return Value{kind: valueNull}
+func NullValue() *Value {
+	return &Value{kind: valueNull}
 }
 
 // IsNull will return true if the value is null, and false otherwise.
@@ -105,19 +105,19 @@ func (value Value) isCallable() bool {
 //		2. The value is not actually a function
 //		3. An (uncaught) exception is thrown
 //
-func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) {
-	result := Value{}
+func (value *Value) Call(this *Value, argumentList ...interface{}) (*Value, error) {
+	result := &Value{}
 	err := catchPanic(func() {
 		// FIXME
 		result = value.call(nil, this, argumentList...)
 	})
 	if !value.safe() {
-		value = Value{}
+		*value = Value{}
 	}
 	return result, err
 }
 
-func (value Value) call(rt *_runtime, this Value, argumentList ...interface{}) Value {
+func (value Value) call(rt *_runtime, this *Value, argumentList ...interface{}) *Value {
 	switch function := value.value.(type) {
 	case *_object:
 		return function.call(this, function.runtime.toValueArray(argumentList...), false, nativeFrame)
@@ -128,15 +128,15 @@ func (value Value) call(rt *_runtime, this Value, argumentList ...interface{}) V
 	panic(rt.panicTypeError())
 }
 
-func (value Value) constructSafe(rt *_runtime, this Value, argumentList ...interface{}) (Value, error) {
-	result := Value{}
+func (value Value) constructSafe(rt *_runtime, this *Value, argumentList ...interface{}) (*Value, error) {
+	result := &Value{}
 	err := catchPanic(func() {
 		result = value.construct(rt, this, argumentList...)
 	})
 	return result, err
 }
 
-func (value Value) construct(rt *_runtime, this Value, argumentList ...interface{}) Value {
+func (value Value) construct(rt *_runtime, this *Value, argumentList ...interface{}) *Value {
 	switch fn := value.value.(type) {
 	case *_object:
 		return fn.construct(fn.runtime.toValueArray(argumentList...))
@@ -279,54 +279,56 @@ func toValue_reflectValuePanic(value interface{}, kind reflect.Kind) {
 	}
 }
 
-func toValue(value interface{}) Value {
+func toValue(value interface{}) *Value {
 	switch value := value.(type) {
-	case Value:
+	case *Value:
 		return value
+	case Value:
+		return &value
 	case bool:
-		return Value{valueBoolean, value}
+		return &Value{valueBoolean, value}
 	case int:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case int8:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case int16:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case int32:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case int64:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case uint:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case uint8:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case uint16:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case uint32:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case uint64:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case float32:
-		return Value{valueNumber, float64(value)}
+		return &Value{valueNumber, float64(value)}
 	case float64:
-		return Value{valueNumber, value}
+		return &Value{valueNumber, value}
 	case []uint16:
-		return Value{valueString, value}
+		return &Value{valueString, value}
 	case string:
-		return Value{valueString, value}
+		return &Value{valueString, value}
 	// A rune is actually an int32, which is handled above
 	case *_object:
-		return Value{valueObject, value}
+		return &Value{valueObject, value}
 	case *Object:
-		return Value{valueObject, value.object}
+		return &Value{valueObject, value.object}
 	case Object:
-		return Value{valueObject, value.object}
+		return &Value{valueObject, value.object}
 	case _reference: // reference is an interface (already a pointer)
-		return Value{valueReference, value}
+		return &Value{valueReference, value}
 	case _result:
-		return Value{valueResult, value}
+		return &Value{valueResult, value}
 	case nil:
 		// TODO Ugh.
-		return Value{}
+		return &Value{}
 	case reflect.Value:
 		for value.Kind() == reflect.Ptr {
 			// We were given a pointer, so we'll drill down until we get a non-pointer
@@ -335,39 +337,39 @@ func toValue(value interface{}) Value {
 			// (It would be best not to depend on this behavior)
 			// FIXME: UNDEFINED
 			if value.IsNil() {
-				return Value{}
+				return &Value{}
 			}
 			value = value.Elem()
 		}
 		switch value.Kind() {
 		case reflect.Bool:
-			return Value{valueBoolean, bool(value.Bool())}
+			return &Value{valueBoolean, bool(value.Bool())}
 		case reflect.Int:
-			return Value{valueNumber, int(value.Int())}
+			return &Value{valueNumber, int(value.Int())}
 		case reflect.Int8:
-			return Value{valueNumber, int8(value.Int())}
+			return &Value{valueNumber, int8(value.Int())}
 		case reflect.Int16:
-			return Value{valueNumber, int16(value.Int())}
+			return &Value{valueNumber, int16(value.Int())}
 		case reflect.Int32:
-			return Value{valueNumber, int32(value.Int())}
+			return &Value{valueNumber, int32(value.Int())}
 		case reflect.Int64:
-			return Value{valueNumber, int64(value.Int())}
+			return &Value{valueNumber, int64(value.Int())}
 		case reflect.Uint:
-			return Value{valueNumber, uint(value.Uint())}
+			return &Value{valueNumber, uint(value.Uint())}
 		case reflect.Uint8:
-			return Value{valueNumber, uint8(value.Uint())}
+			return &Value{valueNumber, uint8(value.Uint())}
 		case reflect.Uint16:
-			return Value{valueNumber, uint16(value.Uint())}
+			return &Value{valueNumber, uint16(value.Uint())}
 		case reflect.Uint32:
-			return Value{valueNumber, uint32(value.Uint())}
+			return &Value{valueNumber, uint32(value.Uint())}
 		case reflect.Uint64:
-			return Value{valueNumber, uint64(value.Uint())}
+			return &Value{valueNumber, uint64(value.Uint())}
 		case reflect.Float32:
-			return Value{valueNumber, float32(value.Float())}
+			return &Value{valueNumber, float32(value.Float())}
 		case reflect.Float64:
-			return Value{valueNumber, float64(value.Float())}
+			return &Value{valueNumber, float64(value.Float())}
 		case reflect.String:
-			return Value{valueString, string(value.String())}
+			return &Value{valueString, string(value.String())}
 		default:
 			toValue_reflectValuePanic(value.Interface(), value.Kind())
 		}
@@ -406,11 +408,11 @@ func (value Value) ToBoolean() (bool, error) {
 	return result, err
 }
 
-func (value Value) numberValue() Value {
+func (value *Value) numberValue() *Value {
 	if value.kind == valueNumber {
 		return value
 	}
-	return Value{valueNumber, value.float64()}
+	return &Value{valueNumber, value.float64()}
 }
 
 // ToFloat will convert the value to a number (float64).
@@ -474,7 +476,7 @@ func (value Value) _object() *_object {
 func (value Value) Object() *Object {
 	switch object := value.value.(type) {
 	case *_object:
-		return _newObject(object, value)
+		return _newObject(object, &value)
 	}
 	return nil
 }
@@ -487,7 +489,7 @@ func (value Value) reference() _reference {
 	return nil
 }
 
-func (value Value) resolve() Value {
+func (value *Value) resolve() *Value {
 	switch value := value.value.(type) {
 	case _reference:
 		return value.getValue()
@@ -525,24 +527,24 @@ func negativeZero() float64 {
 //
 //		ToValue(math.NaN())
 //
-func NaNValue() Value {
-	return Value{valueNumber, __NaN__}
+func NaNValue() *Value {
+	return &Value{valueNumber, __NaN__}
 }
 
-func positiveInfinityValue() Value {
-	return Value{valueNumber, __PositiveInfinity__}
+func positiveInfinityValue() *Value {
+	return &Value{valueNumber, __PositiveInfinity__}
 }
 
-func negativeInfinityValue() Value {
-	return Value{valueNumber, __NegativeInfinity__}
+func negativeInfinityValue() *Value {
+	return &Value{valueNumber, __NegativeInfinity__}
 }
 
-func positiveZeroValue() Value {
-	return Value{valueNumber, __PositiveZero__}
+func positiveZeroValue() *Value {
+	return &Value{valueNumber, __PositiveZero__}
 }
 
-func negativeZeroValue() Value {
-	return Value{valueNumber, __NegativeZero__}
+func negativeZeroValue() *Value {
+	return &Value{valueNumber, __NegativeZero__}
 }
 
 // TrueValue will return a value representing true.
@@ -551,8 +553,8 @@ func negativeZeroValue() Value {
 //
 //		ToValue(true)
 //
-func TrueValue() Value {
-	return Value{valueBoolean, true}
+func TrueValue() *Value {
+	return &Value{valueBoolean, true}
 }
 
 // FalseValue will return a value representing false.
@@ -561,11 +563,11 @@ func TrueValue() Value {
 //
 //		ToValue(false)
 //
-func FalseValue() Value {
-	return Value{valueBoolean, false}
+func FalseValue() *Value {
+	return &Value{valueBoolean, false}
 }
 
-func sameValue(x Value, y Value) bool {
+func sameValue(x *Value, y *Value) bool {
 	if x.kind != y.kind {
 		return false
 	}
@@ -598,7 +600,7 @@ func sameValue(x Value, y Value) bool {
 	return result
 }
 
-func strictEqualityComparison(x Value, y Value) bool {
+func strictEqualityComparison(x *Value, y *Value) bool {
 	if x.kind != y.kind {
 		return false
 	}
@@ -820,7 +822,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	case reflect.Int: // Int
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of int64
-		tmp := toIntegerFloat(value)
+		tmp := toIntegerFloat(&value)
 		if tmp < float_minInt || tmp > float_maxInt {
 			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to int", tmp, value)
 		} else {
@@ -850,7 +852,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	case reflect.Int64: // Int64
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of int64
-		tmp := toIntegerFloat(value)
+		tmp := toIntegerFloat(&value)
 		if tmp < float_minInt64 || tmp > float_maxInt64 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to int", tmp, value)
 		} else {
@@ -859,7 +861,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	case reflect.Uint: // Uint
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of uint
-		tmp := toIntegerFloat(value)
+		tmp := toIntegerFloat(&value)
 		if tmp < 0 || tmp > float_maxUint {
 			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to uint", tmp, value)
 		} else {
@@ -889,7 +891,7 @@ func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
 	case reflect.Uint64: // Uint64
 		// We convert to float64 here because converting to int64 will not tell us
 		// if a value is outside the range of uint64
-		tmp := toIntegerFloat(value)
+		tmp := toIntegerFloat(&value)
 		if tmp < 0 || tmp > float_maxUint64 {
 			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to uint64", tmp, value)
 		} else {

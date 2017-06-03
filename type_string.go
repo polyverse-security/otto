@@ -69,7 +69,7 @@ func stringAt(str _stringObject, index int) rune {
 	return utf8.RuneError
 }
 
-func (runtime *_runtime) newStringObject(value Value) *_object {
+func (runtime *_runtime) newStringObject(value *Value) *_object {
 	str := _newStringObject(value.string())
 
 	self := runtime.newClassObject("String")

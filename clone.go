@@ -120,17 +120,17 @@ func (clone *_clone) fnStash(in *_fnStash) (*_fnStash, bool) {
 	return out, false
 }
 
-func (clone *_clone) value(in Value) Value {
-	out := in
+func (clone *_clone) value(in *Value) *Value {
+	out := *in
 	switch value := in.value.(type) {
 	case *_object:
 		out.value = clone.object(value)
 	}
-	return out
+	return &out
 }
 
-func (clone *_clone) valueArray(in []Value) []Value {
-	out := make([]Value, len(in))
+func (clone *_clone) valueArray(in []*Value) []*Value {
+	out := make([]*Value, len(in))
 	for index, value := range in {
 		out[index] = clone.value(value)
 	}
@@ -148,7 +148,7 @@ func (clone *_clone) property(in _property) _property {
 	out := in
 
 	switch value := in.value.(type) {
-	case Value:
+	case *Value:
 		out.value = clone.value(value)
 	case _propertyGetSet:
 		p := _propertyGetSet{}

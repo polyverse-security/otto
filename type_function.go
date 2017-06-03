@@ -1,10 +1,10 @@
 package otto
 
 // _constructFunction
-type _constructFunction func(*_object, []Value) Value
+type _constructFunction func(*_object, []*Value) *Value
 
 // 13.2.2 [[Construct]]
-func defaultConstruct(fn *_object, argumentList []Value) Value {
+func defaultConstruct(fn *_object, argumentList []*Value) *Value {
 	object := fn.runtime.newObject()
 	object.class = "Object"
 
@@ -23,7 +23,7 @@ func defaultConstruct(fn *_object, argumentList []Value) Value {
 }
 
 // _nativeFunction
-type _nativeFunction func(FunctionCall) Value
+type _nativeFunction func(FunctionCall) *Value
 
 // ===================== //
 // _nativeFunctionObject //
@@ -56,11 +56,11 @@ func (runtime *_runtime) newNativeFunctionObject(name, file string, line int, na
 
 type _bindFunctionObject struct {
 	target       *_object
-	this         Value
-	argumentList []Value
+	this         *Value
+	argumentList []*Value
 }
 
-func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, argumentList []Value) *_object {
+func (runtime *_runtime) newBoundFunctionObject(target *_object, this *Value, argumentList []*Value) *_object {
 	self := runtime.newClassObject("Function")
 	self.value = _bindFunctionObject{
 		target:       target,
@@ -73,13 +73,13 @@ func (runtime *_runtime) newBoundFunctionObject(target *_object, this Value, arg
 		length = 0
 	}
 	self.defineProperty("length", toValue_int(length), 0000, false)
-	self.defineProperty("caller", Value{}, 0000, false)    // TODO Should throw a TypeError
-	self.defineProperty("arguments", Value{}, 0000, false) // TODO Should throw a TypeError
+	self.defineProperty("caller", &Value{}, 0000, false)    // TODO Should throw a TypeError
+	self.defineProperty("arguments", &Value{}, 0000, false) // TODO Should throw a TypeError
 	return self
 }
 
 // [[Construct]]
-func (fn _bindFunctionObject) construct(argumentList []Value) Value {
+func (fn _bindFunctionObject) construct(argumentList []*Value) *Value {
 	object := fn.target
 	switch value := object.value.(type) {
 	case _nativeFunctionObject:
@@ -126,7 +126,7 @@ func (self *_object) isCall() bool {
 	return false
 }
 
-func (self *_object) call(this Value, argumentList []Value, eval bool, frame _frame) Value {
+func (self *_object) call(this *Value, argumentList []*Value, eval bool, frame _frame) *Value {
 	switch fn := self.value.(type) {
 
 	case _nativeFunctionObject:
@@ -185,7 +185,7 @@ func (self *_object) call(this Value, argumentList []Value, eval bool, frame _fr
 	panic(self.runtime.panicTypeError("%v is not a function", toValue_object(self)))
 }
 
-func (self *_object) construct(argumentList []Value) Value {
+func (self *_object) construct(argumentList []*Value) *Value {
 	switch fn := self.value.(type) {
 
 	case _nativeFunctionObject:
@@ -208,7 +208,7 @@ func (self *_object) construct(argumentList []Value) Value {
 }
 
 // 15.3.5.3
-func (self *_object) hasInstance(of Value) bool {
+func (self *_object) hasInstance(of *Value) bool {
 	if !self.isCall() {
 		// We should not have a hasInstance method
 		panic(self.runtime.panicTypeError())
@@ -242,27 +242,27 @@ type FunctionCall struct {
 	_thisObject *_object
 	eval        bool // This call is a direct call to eval
 
-	This         Value
-	ArgumentList []Value
+	This         *Value
+	ArgumentList []*Value
 	Otto         *Otto
 }
 
 // Argument will return the value of the argument at the given index.
 //
 // If no such argument exists, undefined is returned.
-func (self FunctionCall) Argument(index int) Value {
+func (self FunctionCall) Argument(index int) *Value {
 	return valueOfArrayIndex(self.ArgumentList, index)
 }
 
-func (self FunctionCall) getArgument(index int) (Value, bool) {
+func (self FunctionCall) getArgument(index int) (*Value, bool) {
 	return getValueOfArrayIndex(self.ArgumentList, index)
 }
 
-func (self FunctionCall) slice(index int) []Value {
+func (self FunctionCall) slice(index int) []*Value {
 	if index < len(self.ArgumentList) {
 		return self.ArgumentList[index:]
 	}
-	return []Value{}
+	return []*Value{}
 }
 
 func (self *FunctionCall) thisObject() *_object {
@@ -281,7 +281,7 @@ func (self *FunctionCall) thisClassObject(class string) *_object {
 	return self._thisObject
 }
 
-func (self FunctionCall) toObject(value Value) *_object {
+func (self FunctionCall) toObject(value *Value) *_object {
 	return self.runtime.toObject(value)
 }
 

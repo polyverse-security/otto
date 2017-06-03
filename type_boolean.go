@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-func (runtime *_runtime) newBooleanObject(value Value) *_object {
+func (runtime *_runtime) newBooleanObject(value *Value) *_object {
 	return runtime.newPrimitiveObject("Boolean", toValue_bool(value.bool()))
 }
 
