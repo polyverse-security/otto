@@ -17,7 +17,7 @@ func TestGlobal(t *testing.T) {
 			call := func(object interface{}, src string, argumentList ...interface{}) *Value {
 				var tgt *Object
 				switch object := object.(type) {
-				case Value:
+				case *Value:
 					tgt = object.Object()
 				case *Object:
 					tgt = object
@@ -33,7 +33,7 @@ func TestGlobal(t *testing.T) {
 
 			// FIXME enterGlobalScope
 			if false {
-				value := runtime.scope.lexical.getBinding("Object", false)._object().call(UndefinedValue(), []Value{toValue(runtime.newObject())}, false, nativeFrame)
+				value := runtime.scope.lexical.getBinding("Object", false)._object().call(UndefinedValue(), []*Value{toValue(runtime.newObject())}, false, nativeFrame)
 				is(value.IsObject(), true)
 				is(value, "[object Object]")
 				is(value._object().prototype == runtime.global.ObjectPrototype, true)

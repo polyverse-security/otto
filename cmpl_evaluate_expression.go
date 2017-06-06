@@ -71,6 +71,7 @@ func (self *_runtime) cmpl_evaluate_nodeExpression(node _nodeExpression) *Value 
 			// Should never get here!
 			panic(hereBeDragons("referenceError == nil: " + name))
 		}
+
 		return toValue(reference)
 
 	case *_nodeLiteral:
@@ -241,7 +242,6 @@ func (self *_runtime) cmpl_evaluate_nodeCallExpression(node *_nodeCallExpression
 	}
 
 	self.scope.frame.offset = int(at)
-
 	return vl._object().call(this, argumentList, eval, frame)
 }
 
@@ -341,7 +341,7 @@ func (self *_runtime) cmpl_evaluate_nodeObjectLiteral(node *_nodeObjectLiteral) 
 }
 
 func (self *_runtime) cmpl_evaluate_nodeSequenceExpression(node *_nodeSequenceExpression) *Value {
-	var result *Value
+	var result *Value = &Value{}
 	for _, node := range node.sequence {
 		result = self.cmpl_evaluate_nodeExpression(node)
 		result = result.resolve()
@@ -449,6 +449,7 @@ func (self *_runtime) cmpl_evaluate_nodeUnaryExpression(node *_nodeUnaryExpressi
 }
 
 func (self *_runtime) cmpl_evaluate_nodeVariableExpression(node *_nodeVariableExpression) *Value {
+
 	if node.initializer != nil {
 		// FIXME If reference is nil
 		left := getIdentifierReference(self, self.scope.lexical, node.name, false, _at(node.idx))

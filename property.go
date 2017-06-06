@@ -100,7 +100,7 @@ func (self _property) isDataDescriptor() bool {
 	if self.writeSet() { // Either "On" or "Off"
 		return true
 	}
-	value, valid := self.value.(Value)
+	value, valid := self.value.(*Value)
 	return valid && !value.isEmpty()
 }
 

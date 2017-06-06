@@ -22,7 +22,7 @@ func Test_cmpl(t *testing.T) {
 			}
 		}
 
-		test(``, Value{})
+		test(``, &Value{})
 
 		test(`var abc = 1; abc;`, 1)
 

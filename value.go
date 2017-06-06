@@ -283,8 +283,6 @@ func toValue(value interface{}) *Value {
 	switch value := value.(type) {
 	case *Value:
 		return value
-	case Value:
-		return &value
 	case bool:
 		return &Value{valueBoolean, value}
 	case int:
@@ -738,7 +736,7 @@ func (self Value) export() interface{} {
 		return self
 	}
 
-	return Value{}
+	return &Value{}
 }
 
 func (self Value) evaluateBreakContinue(labels []string) _resultKind {

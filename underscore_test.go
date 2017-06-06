@@ -17,7 +17,7 @@ func init() {
 var tester_ *_tester
 
 // A tester for underscore: test_ => test(underscore) :)
-func test_(arguments ...interface{}) (func(string, ...interface{}) Value, *_tester) {
+func test_(arguments ...interface{}) (func(string, ...interface{}) *Value, *_tester) {
 	tester := tester_
 	if tester == nil {
 		tester = newTester()

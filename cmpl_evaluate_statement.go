@@ -116,7 +116,7 @@ func (self *_runtime) cmpl_evaluate_nodeStatement(node _nodeStatement) *Value {
 }
 
 func (self *_runtime) cmpl_evaluate_nodeStatementList(list []_nodeStatement) *Value {
-	var result *Value
+	var result *Value = &Value{}
 	for _, node := range list {
 		value := self.cmpl_evaluate_nodeStatement(node)
 		switch value.kind {

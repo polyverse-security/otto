@@ -19,7 +19,7 @@ func builtinNewFunction(self *_object, argumentList []*Value) *Value {
 	return toValue_object(builtinNewFunctionNative(self.runtime, argumentList))
 }
 
-func argumentList2parameterList(argumentList []Value) []string {
+func argumentList2parameterList(argumentList []*Value) []string {
 	parameterList := make([]string, 0, len(argumentList))
 	for _, value := range argumentList {
 		tmp := strings.FieldsFunc(value.string(), func(chr rune) bool {

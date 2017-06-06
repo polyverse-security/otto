@@ -41,7 +41,7 @@ func (self _goArrayObject) getValue(index int64) (reflect.Value, bool) {
 	return reflect.Value{}, false
 }
 
-func (self _goArrayObject) setValue(index int64, value Value) bool {
+func (self _goArrayObject) setValue(index int64, value *Value) bool {
 	indexValue, exists := self.getValue(index)
 	if !exists {
 		return false
@@ -101,7 +101,7 @@ func goArrayDefineOwnProperty(self *_object, name string, descriptor _property, 
 	} else if index := stringToArrayIndex(name); index >= 0 {
 		object := self.value.(*_goArrayObject)
 		if object.writable {
-			if self.value.(*_goArrayObject).setValue(index, descriptor.value.(Value)) {
+			if self.value.(*_goArrayObject).setValue(index, descriptor.value.(*Value)) {
 				return true
 			}
 		}

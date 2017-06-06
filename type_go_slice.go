@@ -31,7 +31,7 @@ func (self _goSliceObject) getValue(index int64) (reflect.Value, bool) {
 	return reflect.Value{}, false
 }
 
-func (self _goSliceObject) setValue(index int64, value Value) bool {
+func (self _goSliceObject) setValue(index int64, value *Value) bool {
 	indexValue, exists := self.getValue(index)
 	if !exists {
 		return false
@@ -96,7 +96,7 @@ func goSliceDefineOwnProperty(self *_object, name string, descriptor _property, 
 	if name == "length" {
 		return self.runtime.typeErrorResult(throw)
 	} else if index := stringToArrayIndex(name); index >= 0 {
-		if self.value.(*_goSliceObject).setValue(index, descriptor.value.(Value)) {
+		if self.value.(*_goSliceObject).setValue(index, descriptor.value.(*Value)) {
 			return true
 		}
 		return self.runtime.typeErrorResult(throw)

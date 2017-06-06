@@ -38,7 +38,7 @@ func (self _goMapObject) toKey(name string) reflect.Value {
 	return reflectValue
 }
 
-func (self _goMapObject) toValue(value Value) reflect.Value {
+func (self _goMapObject) toValue(value *Value) reflect.Value {
 	reflectValue, err := value.toReflectValue(self.valueKind)
 	if err != nil {
 		panic(err)
@@ -83,7 +83,7 @@ func goMapDefineOwnProperty(self *_object, name string, descriptor _property, th
 	if !descriptor.isDataDescriptor() {
 		return self.runtime.typeErrorResult(throw)
 	}
-	object.value.SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(Value)))
+	object.value.SetMapIndex(object.toKey(name), object.toValue(descriptor.value.(*Value)))
 	return true
 }
 

@@ -11,7 +11,7 @@ import (
 
 func tt(t *testing.T, arguments ...func()) {
 	halt := errors.New("A test was taking too long")
-	timer := time.AfterFunc(2*time.Second, func() {
+	timer := time.AfterFunc(10*time.Second, func() {
 		panic(halt)
 	})
 	defer func() {
@@ -33,7 +33,7 @@ func is(arguments ...interface{}) bool {
 	}
 
 	switch value := got.(type) {
-	case Value:
+	case *Value:
 		if value.value != nil {
 			got = value.value
 		}
@@ -58,7 +58,7 @@ func is(arguments ...interface{}) bool {
 	return terst.Is(arguments...)
 }
 
-func test(arguments ...interface{}) (func(string, ...interface{}) Value, *_tester) {
+func test(arguments ...interface{}) (func(string, ...interface{}) *Value, *_tester) {
 	tester := newTester()
 	if len(arguments) > 0 {
 		tester.test(arguments[0].(string))
@@ -76,7 +76,7 @@ func newTester() *_tester {
 	}
 }
 
-func (self *_tester) Get(name string) (Value, error) {
+func (self *_tester) Get(name string) (*Value, error) {
 	return self.vm.Get(name)
 }
 
@@ -89,7 +89,7 @@ func (self *_tester) Set(name string, value interface{}) *Value {
 	return self.vm.getValue(name)
 }
 
-func (self *_tester) Run(src interface{}) (Value, error) {
+func (self *_tester) Run(src interface{}) (*Value, error) {
 	return self.vm.Run(src)
 }
 
@@ -111,7 +111,7 @@ func (self *_tester) test(name string, expect ...interface{}) *Value {
 			}
 		}
 	}()
-	var value Value
+	var value *Value = &Value{}
 	var err error
 	if isIdentifier(name) {
 		value = vm.getValue(name)
@@ -128,6 +128,7 @@ func (self *_tester) test(name string, expect ...interface{}) *Value {
 			panic(err)
 		}
 	}
+
 	value = value.resolve()
 	if len(expect) > 0 {
 		is(value, expect[0])

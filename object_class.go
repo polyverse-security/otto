@@ -2,6 +2,7 @@ package otto
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 type _objectClass struct {
@@ -206,7 +207,7 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 	property = self.getOwnProperty(name)
 	if property != nil {
 		switch propertyValue := property.value.(type) {
-		case Value:
+		case *Value:
 			canPut = property.writable()
 			return
 		case _propertyGetSet:
@@ -228,7 +229,7 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 	}
 
 	switch propertyValue := property.value.(type) {
-	case Value:
+	case *Value:
 		if !self.extensible {
 			return false, nil, nil
 		}
@@ -244,7 +245,6 @@ func _objectCanPut(self *_object, name string) (canPut bool, property *_property
 
 // 8.12.5
 func objectPut(self *_object, name string, value *Value, throw bool) {
-
 	if true {
 		// Shortcut...
 		//
@@ -288,7 +288,7 @@ func objectPut(self *_object, name string, value *Value, throw bool) {
 		self.defineProperty(name, value, 0111, throw)
 	} else {
 		switch propertyValue := property.value.(type) {
-		case Value:
+		case *Value:
 			property.value = value
 			self.defineOwnProperty(name, *property, throw)
 		case _propertyGetSet:
@@ -352,6 +352,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 				goto Reject
 			}
 		}
+
 		value, isDataDescriptor := property.value.(*Value)
 		getSet, _ := property.value.(_propertyGetSet)
 		if descriptor.isGenericDescriptor() {
@@ -359,6 +360,7 @@ func objectDefineOwnProperty(self *_object, name string, descriptor _property, t
 		} else if isDataDescriptor != descriptor.isDataDescriptor() {
 			// DataDescriptor <=> AccessorDescriptor
 			if !configurable {
+				fmt.Printf("Reject 4\n")
 				goto Reject
 			}
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {

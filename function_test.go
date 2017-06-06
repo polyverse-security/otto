@@ -18,7 +18,7 @@ func TestFunction(t *testing.T) {
 
 func Test_argumentList2parameterList(t *testing.T) {
 	tt(t, func() {
-		is(argumentList2parameterList([]Value{toValue("abc, def"), toValue("ghi")}), []string{"abc", "def", "ghi"})
+		is(argumentList2parameterList([]*Value{toValue("abc, def"), toValue("ghi")}), []string{"abc", "def", "ghi"})
 	})
 }
 

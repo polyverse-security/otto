@@ -625,7 +625,7 @@ func builtinArray_reduce(call FunctionCall) *Value {
 		length := int64(toUint32(thisObject.get("length")))
 		index := int64(0)
 		if length > 0 || initial {
-			var accumulator *Value
+			var accumulator *Value = &Value{}
 			if !initial {
 				for ; index < length; index++ {
 					if key := arrayIndexToString(index); thisObject.hasProperty(key) {
@@ -657,7 +657,7 @@ func builtinArray_reduceRight(call FunctionCall) *Value {
 		length := int64(toUint32(thisObject.get("length")))
 		if length > 0 || initial {
 			index := length - 1
-			var accumulator *Value
+			var accumulator *Value = &Value{}
 			if !initial {
 				for ; index >= 0; index-- {
 					if key := arrayIndexToString(index); thisObject.hasProperty(key) {

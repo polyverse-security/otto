@@ -233,7 +233,7 @@ func catchPanic(function func()) (err error) {
 			case _error:
 				err = &Error{caught}
 				return
-			case Value:
+			case *Value:
 				if vl := caught._object(); vl != nil {
 					switch vl := vl.value.(type) {
 					case _error:

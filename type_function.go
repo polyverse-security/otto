@@ -150,7 +150,6 @@ func (self *_object) call(this *Value, argumentList []*Value, eval bool, frame _
 				rt.leaveScope()
 			}()
 		}
-
 		return fn.call(FunctionCall{
 			runtime: self.runtime,
 			eval:    eval,

@@ -555,7 +555,7 @@ func (self Otto) Call(source string, this interface{}, argumentList ...interface
 		if err == nil {
 			if node, ok := program.body[0].(*_nodeExpressionStatement); ok {
 				if node, ok := node.expression.(*_nodeCallExpression); ok {
-					var value *Value
+					var value *Value = &Value{}
 					err := catchPanic(func() {
 						value = self.runtime.cmpl_evaluate_nodeCallExpression(node, argumentList)
 					})

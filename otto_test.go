@@ -1087,7 +1087,7 @@ func TestOttoCall_throw(t *testing.T) {
 				call.Otto.Call(`throw eval`, nil, "({ def: 3.14159 })")
 			}
 			call.Otto.Call(`throw Error`, nil, "abcdef")
-			return Value{}
+			return &Value{}
 		})
 		// TODO try { abc(); } catch (err) { error = err }
 		// Possible unrelated error case:
@@ -1554,7 +1554,7 @@ func TestOttoContext(t *testing.T) {
 			callee, _ := ctx.Symbols["arguments"].Object().Get("callee")
 			is(callee.IsDefined(), true)
 
-			return Value{}
+			return &Value{}
 		})
 
 		_, err := vm.Run(`(function t() {
@@ -1604,7 +1604,7 @@ func TestOttoContext(t *testing.T) {
 			is(ctx.Symbols["a"], 1)
 			is(ctx.Symbols["b"], UndefinedValue())
 
-			return Value{}
+			return &Value{}
 		})
 
 		_, err := vm.Run(`
@@ -1626,7 +1626,7 @@ func TestOttoContext(t *testing.T) {
 			ctx := c.Otto.Context()
 			is(ctx.Symbols["a"], n)
 
-			return Value{}
+			return &Value{}
 		})
 
 		_, err := vm.Run(`

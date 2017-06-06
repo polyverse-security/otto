@@ -14,11 +14,11 @@ var (
 	}
 	prototypeValueString = _stringASCII("")
 	// TODO Make this just false?
-	prototypeValueBoolean = Value{
+	prototypeValueBoolean = &Value{
 		kind:  valueBoolean,
 		value: false,
 	}
-	prototypeValueNumber = Value{
+	prototypeValueNumber = &Value{
 		kind:  valueNumber,
 		value: 0,
 	}
@@ -48,9 +48,10 @@ func newContext() *_runtime {
 	self.globalStash = self.newObjectStash(nil, nil)
 	self.globalObject = self.globalStash.object
 
+
 	_newContext(self)
 
-	self.eval = self.globalObject.property["eval"].value.(Value).value.(*_object)
+	self.eval = self.globalObject.property["eval"].value.(*Value).value.(*_object)
 	self.globalObject.prototype = self.global.ObjectPrototype
 
 	return self
@@ -104,7 +105,7 @@ func (runtime *_runtime) newArray(length uint32) *_object {
 func (runtime *_runtime) newArrayOf(valueArray []*Value) *_object {
 	self := runtime.newArray(uint32(len(valueArray)))
 	for index, value := range valueArray {
-		if value.isEmpty() {
+		if value == nil || value.isEmpty() {
 			continue
 		}
 		self.defineProperty(strconv.FormatInt(int64(index), 10), value, 0111, false)
